@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "Runtime/Engine/Classes/Components/ArrowComponent.h"
-#include "Runtime/Engine/Classes/Components/InstancedStaticMeshComponent.h"
 #include "GEBaseShip.generated.h"
 
 UCLASS()
@@ -15,16 +13,25 @@ class GALACTICENGAGEMENT_API AGEBaseShip : public APawn
 private:
 	// components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* Camera;
+	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent * CameraBoom;
+	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* ShipBody;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* Engine;
+	class UGEEngineBaseComponent* Engine;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TArray<UInstancedStaticMeshComponent *> Guns;
+	class UGEThrusterBaseComponent * Thrusters;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TArray<UInstancedStaticMeshComponent *> Thrusters;
+	class UGEGunBaseComponent* Guns;
 	
 	// debug components
-	UArrowComponent* FrontFacingArrow;
+	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class UArrowComponent* FrontFacingArrow;
+
+	FVector2D MoveToPoint;
+	float CurrentSpeed;
+	float CurrentRotationRate;
 
 public:
 	// Sets default values for this pawn's properties
@@ -34,11 +41,29 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
+	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
+	bool IsMoving;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float GroundZ;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float MaxSpeed;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float MaxAccel;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float MaxRotationRate;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float MaxRotationAccel;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float RotationDeccel;
+	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
+	float SpeedDeccel;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void UpdateMovementRates(float DeltaTime);
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	// Input
+	void MoveTo(float axis);
 };

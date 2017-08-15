@@ -13,8 +13,6 @@ UCLASS()
 class GALACTICENGAGEMENT_API AGalacticEngagementGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
+		AGalacticEngagementGameModeBase();
 };

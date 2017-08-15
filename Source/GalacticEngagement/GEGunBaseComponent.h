@@ -4,17 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/StaticMeshComponent.h"
-#include "GEGuneBaseComponent.generated.h"
+#include "GEGunBaseComponent.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GALACTICENGAGEMENT_API UGEGuneBaseComponent : public UStaticMeshComponent
+class GALACTICENGAGEMENT_API UGEGunBaseComponent : public UStaticMeshComponent
 {
 	GENERATED_BODY()
-	
-	
-	
 	
 };

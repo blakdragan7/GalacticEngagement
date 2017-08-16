@@ -6,6 +6,13 @@
 #include "GameFramework/Pawn.h"
 #include "GEBaseShip.generated.h"
 
+UENUM(BlueprintType)		//"BlueprintType" is essential to include
+enum class ESelectedGun : uint8
+{
+	SG_Main 			UMETA(DisplayName = "Main Gun"),
+	SG_Secondary 	UMETA(DisplayName = "Secondary Gun")
+};
+
 UCLASS()
 class GALACTICENGAGEMENT_API AGEBaseShip : public APawn
 {
@@ -23,7 +30,9 @@ private:
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UGEThrusterBaseComponent * Thrusters;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UGEGunBaseComponent* Guns;
+	class UGEGunBaseComponent* MainGun;
+	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class UGEGunBaseComponent* SecondaryGun;
 	
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -32,6 +41,7 @@ private:
 	FVector2D MoveToPoint;
 	float CurrentSpeed;
 	float CurrentRotationRate;
+	bool FireGunToggle;
 
 public:
 	// Sets default values for this pawn's properties
@@ -40,6 +50,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void UpdateMovementRates(float DeltaTime);
 
 public:
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
@@ -58,12 +69,20 @@ public:
 	float RotationDeccel;
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
 	float SpeedDeccel;
+	UPROPERTY(Category = "Controls",EditAnywhere, BlueprintReadWrite)
+	ESelectedGun SelectedGun;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void UpdateMovementRates(float DeltaTime);
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// Input
 	void MoveTo(float axis);
+	
+	void FireGunDownMapping();
+	void FireGunReleaseMapping();
+	virtual void FireSelectedGun();
+	/** Called when Weapon Fired*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
+	void GunFired(class UGEGunBaseComponent* FiredGun,ESelectedGun TheSelectedGun);
 };

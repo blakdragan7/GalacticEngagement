@@ -6,6 +6,7 @@
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "DrawDebugHelpers.h"
+#include "GEDamageInterface.h"
 
 // Sets default values
 AGEAmmoBase::AGEAmmoBase()
@@ -13,6 +14,7 @@ AGEAmmoBase::AGEAmmoBase()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
+	bWasLaunched = false;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AmmoRoot"));
 	AmmoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AmmoMesh"));
@@ -28,28 +30,65 @@ AGEAmmoBase::AGEAmmoBase()
 	if (StaticMeshCube.Object)AmmoMesh->SetStaticMesh(StaticMeshCube.Object);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	//ProjectileMovement->SetUpdatedComponent(AmmoMesh);
 	ProjectileMovement->InitialSpeed = 0.f;
 	ProjectileMovement->MaxSpeed = 3000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->ProjectileGravityScale = 0;
-	// setup movement
+	
+	// Setup Collision
+	AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	AmmoMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+	AmmoMesh->OnComponentBeginOverlap.AddDynamic(this, &AGEAmmoBase::OnComponentOverlapBegin);
+	//AmmoMesh->OnComponentEndOverlap.AddDynamic(this, &AGEAmmoBase::OnXXXOverlapEnd);
+
+	TimeToLive = 1;
+	InitialSpeed = 2000;
+	MaxDamage = 10;
 }
 
 // Called when the game starts or when spawned
 void AGEAmmoBase::BeginPlay()
 {
 	Super::BeginPlay();
+	CurrentDamage = MaxDamage;
 }
 
 // Called every frame
 void AGEAmmoBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ProjectileMovement->Velocity.GetSafeNormal() * 100.0),
-		100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
+	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(),
+		GetActorLocation() + (ProjectileMovement->Velocity.GetSafeNormal() * 100.0),100.f, 
+		FColor::Red, false, -1.f, (uint8)'\000', 10.f);
+	if (bWasLaunched)
+	{
+		TimeToLive -= DeltaTime;
+		if (TimeToLive <= 0)
+		{
+			Destroy();
+		}
+	}
 }
 
-void AGEAmmoBase::Launch(FVector Velocity)
+void AGEAmmoBase::Launch(AActor* LaunchingActor, FVector Direction)
 {
-	ProjectileMovement->Velocity = Velocity;
+	ProjectileMovement->Velocity = Direction*InitialSpeed;
+	ignoredActor = LaunchingActor;
+	bWasLaunched = true;
+}
+
+void AGEAmmoBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (ignoredActor && IsValid(this) && bWasLaunched)
+	{
+		if (ignoredActor != OtherActor)
+		{
+			if (IGEDamageInterface* damageInterface = Cast<IGEDamageInterface>(OtherActor))
+			{
+				damageInterface->ReceiveDamage(CurrentDamage, OtherComp->GetComponentLocation());
+				Destroy();
+			}
+		}
+	}
 }

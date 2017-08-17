@@ -2,6 +2,7 @@
 
 #include "GEGunBaseComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "GEAmmoBase.h"
 
 UGEGunBaseComponent::UGEGunBaseComponent() : UStaticMeshComponent()
@@ -40,7 +41,7 @@ bool UGEGunBaseComponent::FireGun()
 		const FRotator Rotation = GetComponentRotation();
 		const FVector Direction = GetForwardVector();
 		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
-		ammo->Launch(Direction*100.0);
+		ammo->Launch(GetOwner(), Direction*100.0);
 		ToggleShoot = true;
 		return true;
 	}
@@ -53,10 +54,11 @@ bool UGEGunBaseComponent::FireGun(FVector Direction)
 	{
 		FActorSpawnParameters spawnParams;
 		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		FTransform transform;
 		const FVector Location = GetComponentLocation();
 		const FRotator Rotation = GetComponentRotation();
 		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
-		ammo->Launch(Direction*2000.0);
+		if(ammo)ammo->Launch(GetOwner(),Direction);
 		ToggleShoot = true;
 		return true;
 	}
@@ -70,7 +72,7 @@ bool UGEGunBaseComponent::FireGun(FVector Direction,FVector & Location, FRotator
 		FActorSpawnParameters spawnParams;
 		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
-		ammo->Launch(Direction*2000.0);
+		ammo->Launch(GetOwner(), Direction*2000.0);
 		ToggleShoot = true;
 		return true;
 	}

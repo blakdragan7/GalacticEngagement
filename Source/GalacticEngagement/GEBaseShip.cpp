@@ -14,6 +14,8 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "GEDamageIndicator.h"
 // Sets default values
 AGEBaseShip::AGEBaseShip()
 {
@@ -60,11 +62,14 @@ AGEBaseShip::AGEBaseShip()
 	MaxSpeed = 1000;
 	MaxAccel = 200;
 	CurrentSpeed = 0;
-	MaxRotationRate = 180;
+	MaxRotationRate = 360;
 	MaxRotationAccel = 90;
 	CurrentRotationRate = 0;
 	RotationDeccel = 90;
 	SpeedDeccel = 500;
+
+	MaxHealth = 100;
+	CurrentHealth = 0;
 
 	SelectedGun = ESelectedGun::SG_Main;
 }
@@ -73,7 +78,7 @@ AGEBaseShip::AGEBaseShip()
 void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	CurrentHealth = MaxHealth;
 }
 
 // Called every frame
@@ -81,51 +86,54 @@ void AGEBaseShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	if (IsValid(this))
 	{
-		FVector WorldLocation;
-		FVector WorldDirection;
-		if (UGameplayStatics::DeprojectScreenToWorld(controller, MoveToPoint, WorldLocation, WorldDirection))
+		if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			FVector EndLocation = WorldLocation - (WorldDirection * (WorldLocation.Z - GroundZ));
-			FVector WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
-			//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*WorldMoveToLocation.ToString()));
-
-			FVector CurrentLocation = GetActorLocation();
-			WorldMoveToLocation.Z = CurrentLocation.Z;
-			FRotator CurrentRotation = ShipBody->GetComponentRotation();
-			FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
-			if (!FacingRotation.ContainsNaN())
+			FVector WorldLocation;
+			FVector WorldDirection;
+			if (UGameplayStatics::DeprojectScreenToWorld(controller, MoveToPoint, WorldLocation, WorldDirection))
 			{
-				float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
-				float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
-				if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
-				{
-					CurrentRotation.Yaw = FacingRotation.Yaw;
-				}
-				else
-				{
-					CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
-				}
+				FVector EndLocation = WorldLocation - (WorldDirection * (WorldLocation.Z - GroundZ));
+				FVector WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
+				//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*WorldMoveToLocation.ToString()));
 
-				ShipBody->SetWorldRotation(CurrentRotation);
+				FVector CurrentLocation = GetActorLocation();
+				WorldMoveToLocation.Z = CurrentLocation.Z;
+				FRotator CurrentRotation = ShipBody->GetComponentRotation();
+				FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
+				if (!FacingRotation.ContainsNaN())
+				{
+					float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
+					float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
+					if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
+					{
+						CurrentRotation.Yaw = FacingRotation.Yaw;
+					}
+					else
+					{
+						CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
+					}
+
+					ShipBody->SetWorldRotation(CurrentRotation);
+				}
+				FVector ForwardVector = ShipBody->GetForwardVector();
+				//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 15.0f, FColor::Yellow, FString::Printf(TEXT("CurrentRotationRate = %f"), CurrentRotationRate));
+
+				SetActorLocation(CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime));
 			}
-			FVector ForwardVector = ShipBody->GetForwardVector();
-			//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 15.0f, FColor::Yellow, FString::Printf(TEXT("CurrentRotationRate = %f"), CurrentRotationRate));
+			else
+			{
+				// Failed to convert to world position
+			}
+		}
 
-			SetActorLocation(CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime));
-		}
-		else
-		{
-			// Failed to convert to world position
-		}
+		UpdateMovementRates(DeltaTime);
+		if (FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
+
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
+			100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
 	}
-
-	UpdateMovementRates(DeltaTime);
-	if(FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
-
-	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
-		100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
 }
 
 // Called to bind functionality to input
@@ -135,6 +143,22 @@ void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	InputComponent->BindAxis("MoveTo", this, &AGEBaseShip::MoveTo);
 	InputComponent->BindAction("MainFire", IE_Released, this, &AGEBaseShip::FireGunReleaseMapping);
 	InputComponent->BindAction("MainFire", IE_Pressed, this, &AGEBaseShip::FireGunDownMapping);
+}
+
+void AGEBaseShip::ReceiveDamage(int32 Damage, FVector DamageLocation)
+{
+	CurrentHealth -= Damage;
+	AGEDamageIndicator::SpawnIndicatorWithDamageAndDuration(this, DamageLocation, 0.25, FString::FromInt(Damage));
+	if (CurrentHealth <= 0)
+	{
+		ShipDestroyed();
+		OnShipDeath();
+	}
+}
+
+int32 AGEBaseShip::GetHealth()
+{
+	return CurrentHealth;
 }
 
 void AGEBaseShip::UpdateMovementRates(float DeltaTime)
@@ -222,4 +246,9 @@ void AGEBaseShip::FireSelectedGun()
 	default:
 		break;
 	}
+}
+
+void AGEBaseShip::OnShipDeath()
+{
+	Destroy();
 }

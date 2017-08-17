@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "GEDamageInterface.h"
 #include "GEBaseShip.generated.h"
 
 UENUM(BlueprintType)		//"BlueprintType" is essential to include
@@ -14,7 +15,7 @@ enum class ESelectedGun : uint8
 };
 
 UCLASS()
-class GALACTICENGAGEMENT_API AGEBaseShip : public APawn
+class GALACTICENGAGEMENT_API AGEBaseShip : public APawn, public IGEDamageInterface
 {
 	GENERATED_BODY()
 private:
@@ -33,7 +34,6 @@ private:
 	class UGEGunBaseComponent* MainGun;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UGEGunBaseComponent* SecondaryGun;
-	
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
@@ -53,6 +53,10 @@ protected:
 	virtual void UpdateMovementRates(float DeltaTime);
 
 public:
+	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
+	int32 CurrentHealth;
+	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
+	int32 MaxHealth;
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
 	bool IsMoving;
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
@@ -73,7 +77,10 @@ public:
 	ESelectedGun SelectedGun;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	/** Damage Interface */
+	virtual void ReceiveDamage(int32 Damage, FVector DamageLocation) override;
+	virtual int32 GetHealth() override;
+	/** End Damage Interface*/
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// Input
@@ -82,7 +89,13 @@ public:
 	void FireGunDownMapping();
 	void FireGunReleaseMapping();
 	virtual void FireSelectedGun();
+	virtual void OnShipDeath();
 	/** Called when Weapon Fired*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
 	void GunFired(class UGEGunBaseComponent* FiredGun,ESelectedGun TheSelectedGun);
+	/** Called When Ship is About to be Destroyed. 
+	**	After this function returns the Actor will be destroy so 
+	**	starting timers or anything with a delay here wouild not work */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
+	void ShipDestroyed();
 };

@@ -19,6 +19,9 @@ private:
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
+
+	AActor* ignoredActor;
+	
 public:	
 	// Sets default values for this actor's properties
 	AGEAmmoBase();
@@ -28,9 +31,31 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	
+	UPROPERTY(Category = Collision, VisibleAnywhere, BlueprintReadOnly)
+	bool bWasLaunched;
+	UPROPERTY(Category = LifeTime, EditAnywhere, BlueprintReadWrite)
+	float TimeToLive;
+	UPROPERTY(Category = Movement, EditAnywhere, BlueprintReadWrite)
+	float InitialSpeed;
+	UPROPERTY(Category = Damage, EditAnywhere, BlueprintReadWrite)
+	int32 MaxDamage;
+	UPROPERTY(Category = Damage, EditAnywhere, BlueprintReadWrite)
+	int32 CurrentDamage;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Launch(FVector Velocity);
+	virtual void Launch(AActor* LaunchingActor, FVector Direction);
 	
+	UFUNCTION()
+	void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 };
+
+/*
+UFUNCTION()
+void OnXXXOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+UFUNCTION()
+void OnXXXOverlapEnd(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+*/

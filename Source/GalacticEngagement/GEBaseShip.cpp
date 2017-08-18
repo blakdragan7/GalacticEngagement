@@ -16,9 +16,12 @@
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
 #include "GEDamageIndicator.h"
+#include "EngineUtils.h"
 // Sets default values
 AGEBaseShip::AGEBaseShip()
 {
+	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
+
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ShipRoot"));
@@ -62,14 +65,23 @@ AGEBaseShip::AGEBaseShip()
 	MaxSpeed = 1000;
 	MaxAccel = 200;
 	CurrentSpeed = 0;
-	MaxRotationRate = 360;
+	MaxRotationRate = 180;
 	MaxRotationAccel = 90;
 	CurrentRotationRate = 0;
 	RotationDeccel = 90;
 	SpeedDeccel = 500;
 
+	CameraOffsetScale = 2;
+
+	AttackAngle = 45.0;
+	AttackDistance = 1000.0;
+	SlowDownDistance = 600.0;
+
 	MaxHealth = 100;
 	CurrentHealth = 0;
+
+	CurrentlyTargetedShip = 0;
+	CurrentlyTargetingMe = 0;
 
 	SelectedGun = ESelectedGun::SG_Main;
 }
@@ -79,6 +91,8 @@ void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
+	FVector CurrentLocation = GetActorLocation();
+	MoveToPoint = FVector2D(CurrentLocation.X, CurrentLocation.Y);
 }
 
 // Called every frame
@@ -88,44 +102,62 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 	if (IsValid(this))
 	{
-		if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		FVector CurrentLocation = GetActorLocation();
+		FVector WorldMoveToLocation;
+
+		if (CurrentlyTargetedShip)
+		{
+			if (IsValid(CurrentlyTargetedShip))
+			{
+				WorldMoveToLocation = FVector(MoveToPoint.X, MoveToPoint.Y, 0);
+			}
+			else
+			{
+				CurrentlyTargetedShip = 0;
+				MoveToPoint = FVector2D(CurrentLocation.X, CurrentLocation.Y);
+			}
+		}
+		else if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
 			FVector WorldLocation;
 			FVector WorldDirection;
 			if (UGameplayStatics::DeprojectScreenToWorld(controller, MoveToPoint, WorldLocation, WorldDirection))
 			{
 				FVector EndLocation = WorldLocation - (WorldDirection * (WorldLocation.Z - GroundZ));
-				FVector WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
+				WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
 				//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*WorldMoveToLocation.ToString()));
 
-				FVector CurrentLocation = GetActorLocation();
-				WorldMoveToLocation.Z = CurrentLocation.Z;
-				FRotator CurrentRotation = ShipBody->GetComponentRotation();
-				FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
-				if (!FacingRotation.ContainsNaN())
-				{
-					float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
-					float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
-					if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
-					{
-						CurrentRotation.Yaw = FacingRotation.Yaw;
-					}
-					else
-					{
-						CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
-					}
-
-					ShipBody->SetWorldRotation(CurrentRotation);
-				}
-				FVector ForwardVector = ShipBody->GetForwardVector();
-				//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 15.0f, FColor::Yellow, FString::Printf(TEXT("CurrentRotationRate = %f"), CurrentRotationRate));
-
-				SetActorLocation(CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime));
+				
 			}
 			else
 			{
 				// Failed to convert to world position
 			}
+			// Update Camera if we have a player controller attached
+			UpdateCameraPosition();
+		}
+		{ // Update Position and rotation
+			WorldMoveToLocation.Z = CurrentLocation.Z;
+			FRotator CurrentRotation = ShipBody->GetComponentRotation();
+			FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
+			if (!FacingRotation.ContainsNaN())
+			{
+				float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
+				float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
+				if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
+				{
+					CurrentRotation.Yaw = FacingRotation.Yaw;
+				}
+				else
+				{
+					CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
+				}
+
+				ShipBody->SetWorldRotation(CurrentRotation);
+			}
+			FVector ForwardVector = ShipBody->GetForwardVector();
+
+			SetActorLocation(CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime));
 		}
 
 		UpdateMovementRates(DeltaTime);
@@ -161,6 +193,27 @@ int32 AGEBaseShip::GetHealth()
 	return CurrentHealth;
 }
 
+void AGEBaseShip::UpdateCameraPosition()
+{
+	if (CurrentlyTargetingMe)
+	{
+		if (IsValid(CurrentlyTargetingMe))
+		{
+			float distance = GetDistanceTo(CurrentlyTargetingMe) * CameraOffsetScale;
+			distance = FMath::Max<float>(distance, 600.0);
+			CameraBoom->TargetArmLength = distance;
+		}
+		else
+		{
+			CurrentlyTargetingMe = 0;
+		}
+	}
+	else
+	{
+		CameraBoom->TargetArmLength = 600.0;
+	}
+}
+
 void AGEBaseShip::UpdateMovementRates(float DeltaTime)
 {
 	if (IsMoving)
@@ -170,7 +223,7 @@ void AGEBaseShip::UpdateMovementRates(float DeltaTime)
 			CurrentSpeed += MaxAccel * DeltaTime;
 			CurrentSpeed = FMath::Clamp<float>(CurrentSpeed, 0, MaxSpeed);
 		}
-		if (CurrentRotationRate < MaxRotationAccel)
+		if (CurrentRotationRate < MaxRotationRate)
 		{
 			CurrentRotationRate += MaxRotationAccel * DeltaTime;
 			CurrentRotationRate = FMath::Clamp<float>(CurrentRotationRate, 0, MaxRotationRate);
@@ -251,4 +304,90 @@ void AGEBaseShip::FireSelectedGun()
 void AGEBaseShip::OnShipDeath()
 {
 	Destroy();
+}
+
+void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
+{
+	CurrentlyTargetingMe = aggresser;
+}
+
+void AGEBaseShip::MoveTo(AActor * Actor)
+{
+	FVector Location = Actor->GetActorLocation();
+	MoveToPoint = FVector2D(Location.X, Location.Y);
+	IsMoving = true;
+}
+
+bool AGEBaseShip::ShouldFireGun()
+{
+	if (CurrentlyTargetedShip != nullptr)
+	{
+		FVector CurrentLocation = GetActorLocation();
+		FVector OtherActorLocation = CurrentlyTargetedShip->GetActorLocation();
+
+		float distSq = FVector::DistSquared(CurrentLocation, OtherActorLocation);
+		if (distSq <= (AttackDistance*AttackDistance))
+		{
+			FVector Direction = (OtherActorLocation - CurrentLocation).GetSafeNormal();
+			float DotToTarget = FVector::DotProduct(Direction,ShipBody->GetForwardVector());
+			
+			if (DotToTarget >= FMath::Cos(FMath::DegreesToRadians(AttackAngle)))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool AGEBaseShip::ShouldFireMainGun()
+{
+	return true; // base alwaus fire main gun
+}
+
+bool AGEBaseShip::ShouldFireSecondaryGun()
+{
+	return false; // Base always fires main gun
+}
+
+void AGEBaseShip::SearchForTarget(float radius)
+{
+	for (TActorIterator<AGEBaseShip> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
+		AGEBaseShip *OtherShip = *ActorItr;
+		if (this != OtherShip)
+		{
+			float sqrDistance = GetSquaredDistanceTo(OtherShip);
+			if (OtherShip->CanBeTargetedBy(this) && sqrDistance <= (radius * radius))
+			{
+				CurrentlyTargetedShip = OtherShip;
+				OtherShip->WasTargetBy(this);
+			}
+		}
+	}
+
+	if (!CurrentlyTargetedShip)
+	{
+		FVector Location = GetActorLocation();
+		FVector WorldMoveTo = FVector(MoveToPoint.X, MoveToPoint.Y, Location.Z);
+		if (FVector::DistSquared(Location,WorldMoveTo) <= 10.0)
+		{
+			float x = FMath::RandRange(-400, 400);
+			float y = FMath::RandRange(-400, 400);
+			MoveToPoint = FVector2D(Location.X + x, Location.Y + y);
+			IsMoving = true;
+		}
+	}
+}
+
+bool AGEBaseShip::CanBeTargetedBy(AGEBaseShip* other)
+{
+	return true; // Currently no reason to not be allowed target
+}
+
+AGEBaseShip* AGEBaseShip::GetTarget()
+{
+	return CurrentlyTargetedShip;
 }

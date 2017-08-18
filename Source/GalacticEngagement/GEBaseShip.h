@@ -38,19 +38,40 @@ private:
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
 
+	UPROPERTY(Category = Camera, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float CameraOffsetScale;
+
 	FVector2D MoveToPoint;
 	float CurrentSpeed;
 	float CurrentRotationRate;
 	bool FireGunToggle;
+	AGEBaseShip* CurrentlyTargetingMe;
+
+protected:
+	
+	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
+	AGEBaseShip* CurrentlyTargetedShip;
+
+	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
+	float AttackDistance;
+
+	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
+	float AttackAngle; 
+
+	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
+	float SlowDownDistance;
+
+private:
+	void UpdateCameraPosition();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void UpdateMovementRates(float DeltaTime);
 
 public:
 	// Sets default values for this pawn's properties
 	AGEBaseShip();
-
-protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void UpdateMovementRates(float DeltaTime);
 
 public:
 	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
@@ -90,6 +111,7 @@ public:
 	void FireGunReleaseMapping();
 	virtual void FireSelectedGun();
 	virtual void OnShipDeath();
+	virtual void WasTargetBy(AGEBaseShip* aggresser);
 	/** Called when Weapon Fired*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
 	void GunFired(class UGEGunBaseComponent* FiredGun,ESelectedGun TheSelectedGun);
@@ -98,4 +120,13 @@ public:
 	**	starting timers or anything with a delay here wouild not work */
 	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
 	void ShipDestroyed();
+
+	/** AI Functions */
+	void MoveTo(AActor* Actor);
+	virtual bool ShouldFireGun();
+	virtual bool ShouldFireMainGun();
+	virtual bool ShouldFireSecondaryGun();
+	virtual void SearchForTarget(float radius);
+	virtual bool CanBeTargetedBy(AGEBaseShip* other);
+	virtual AGEBaseShip* GetTarget();
 };

@@ -62,14 +62,6 @@ AGEBaseShip::AGEBaseShip()
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
 	GroundZ = 0;
-	MaxSpeed = 1000;
-	MaxAccel = 200;
-	CurrentSpeed = 0;
-	MaxRotationRate = 180;
-	MaxRotationAccel = 90;
-	CurrentRotationRate = 0;
-	RotationDeccel = 90;
-	SpeedDeccel = 500;
 
 	CameraOffsetScale = 2;
 
@@ -211,36 +203,6 @@ void AGEBaseShip::UpdateCameraPosition()
 	else
 	{
 		CameraBoom->TargetArmLength = 600.0;
-	}
-}
-
-void AGEBaseShip::UpdateMovementRates(float DeltaTime)
-{
-	if (IsMoving)
-	{
-		if (CurrentSpeed < MaxSpeed)
-		{
-			CurrentSpeed += MaxAccel * DeltaTime;
-			CurrentSpeed = FMath::Clamp<float>(CurrentSpeed, 0, MaxSpeed);
-		}
-		if (CurrentRotationRate < MaxRotationRate)
-		{
-			CurrentRotationRate += MaxRotationAccel * DeltaTime;
-			CurrentRotationRate = FMath::Clamp<float>(CurrentRotationRate, 0, MaxRotationRate);
-		}
-	}
-	else
-	{
-		if (CurrentSpeed > 0)
-		{
-			CurrentSpeed -= SpeedDeccel * DeltaTime;
-			CurrentSpeed = FMath::Clamp<float>(CurrentSpeed,0,MaxSpeed);
-		}
-		if (CurrentRotationRate > 0)
-		{
-			CurrentRotationRate -= RotationDeccel * DeltaTime;
-			CurrentRotationRate = FMath::Clamp<float>(CurrentRotationRate, 0, MaxRotationRate);
-		}
 	}
 }
 

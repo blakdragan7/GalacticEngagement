@@ -42,8 +42,6 @@ private:
 	float CameraOffsetScale;
 
 	FVector2D MoveToPoint;
-	float CurrentSpeed;
-	float CurrentRotationRate;
 	bool FireGunToggle;
 	AGEBaseShip* CurrentlyTargetingMe;
 
@@ -64,10 +62,6 @@ protected:
 private:
 	void UpdateCameraPosition();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void UpdateMovementRates(float DeltaTime);
-
 public:
 	// Sets default values for this pawn's properties
 	AGEBaseShip();
@@ -78,22 +72,9 @@ public:
 	int32 CurrentHealth;
 	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
-	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
-	bool IsMoving;
+	
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
 	float GroundZ;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float MaxSpeed;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float MaxAccel;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float MaxRotationRate;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float MaxRotationAccel;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float RotationDeccel;
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float SpeedDeccel;
 	UPROPERTY(Category = "Controls",EditAnywhere, BlueprintReadWrite)
 	ESelectedGun SelectedGun;
 	// Called every frame

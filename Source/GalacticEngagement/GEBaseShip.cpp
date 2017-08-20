@@ -61,19 +61,20 @@ AGEBaseShip::AGEBaseShip()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
-	GroundZ = 0;
+	GroundZ = 112;
 
 	CameraOffsetScale = 2;
 
 	AttackAngle = 45.0;
 	AttackDistance = 1000.0;
-	SlowDownDistance = 600.0;
 
 	MaxHealth = 100;
 	CurrentHealth = 0;
 
 	CurrentlyTargetedShip = 0;
 	CurrentlyTargetingMe = 0;
+
+	HasMovementInput = false;
 
 	SelectedGun = ESelectedGun::SG_Main;
 }
@@ -83,8 +84,7 @@ void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
-	FVector CurrentLocation = GetActorLocation();
-	MoveToPoint = FVector2D(CurrentLocation.X, CurrentLocation.Y);
+	Engine->SetControlledShip(this);
 }
 
 // Called every frame
@@ -94,65 +94,8 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 	if (IsValid(this))
 	{
-		FVector CurrentLocation = GetActorLocation();
-		FVector WorldMoveToLocation;
-
-		if (CurrentlyTargetedShip)
-		{
-			if (IsValid(CurrentlyTargetedShip))
-			{
-				WorldMoveToLocation = FVector(MoveToPoint.X, MoveToPoint.Y, 0);
-			}
-			else
-			{
-				CurrentlyTargetedShip = 0;
-				MoveToPoint = FVector2D(CurrentLocation.X, CurrentLocation.Y);
-			}
-		}
-		else if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-		{
-			FVector WorldLocation;
-			FVector WorldDirection;
-			if (UGameplayStatics::DeprojectScreenToWorld(controller, MoveToPoint, WorldLocation, WorldDirection))
-			{
-				FVector EndLocation = WorldLocation - (WorldDirection * (WorldLocation.Z - GroundZ));
-				WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
-				//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*WorldMoveToLocation.ToString()));
-
-				
-			}
-			else
-			{
-				// Failed to convert to world position
-			}
-			// Update Camera if we have a player controller attached
-			UpdateCameraPosition();
-		}
-		{ // Update Position and rotation
-			WorldMoveToLocation.Z = CurrentLocation.Z;
-			FRotator CurrentRotation = ShipBody->GetComponentRotation();
-			FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
-			if (!FacingRotation.ContainsNaN())
-			{
-				float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
-				float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
-				if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
-				{
-					CurrentRotation.Yaw = FacingRotation.Yaw;
-				}
-				else
-				{
-					CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
-				}
-
-				ShipBody->SetWorldRotation(CurrentRotation);
-			}
-			FVector ForwardVector = ShipBody->GetForwardVector();
-
-			SetActorLocation(CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime));
-		}
-
-		UpdateMovementRates(DeltaTime);
+		UpdateInputs();
+		UpdateCameraPosition();
 		if (FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
 
 		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
@@ -160,11 +103,69 @@ void AGEBaseShip::Tick(float DeltaTime)
 	}
 }
 
+void AGEBaseShip::UpdateInputs()
+{
+	if (HasMovementInput)
+	{
+		FVector2D ScreenMoveToPoint;
+
+		if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			float targetX, targetY;
+			bool isCurrentlyPressed;
+			controller->GetInputTouchState(ETouchIndex::Touch1, targetX, targetY, isCurrentlyPressed);
+			if (isCurrentlyPressed)
+			{
+				ScreenMoveToPoint = FVector2D(targetX, targetY);
+			}
+			else
+			{
+				if (controller->IsInputKeyDown(EKeys::LeftMouseButton))
+				{
+					if (controller->GetMousePosition(targetX, targetY))
+					{
+						ScreenMoveToPoint = FVector2D(targetX, targetY);
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Could Not Get Mouse Position !"));
+					}
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could Not Get PlayerController !"));
+			return;
+		}
+
+		if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			FVector WorldLocation;
+			FVector WorldDirection;
+			FVector WorldMoveToLocation;
+			if (UGameplayStatics::DeprojectScreenToWorld(controller, ScreenMoveToPoint, WorldLocation, WorldDirection))
+			{
+				FVector EndLocation = WorldLocation - (WorldDirection * (WorldLocation.Z - GroundZ));
+				WorldMoveToLocation = FMath::LinePlaneIntersection(WorldLocation, EndLocation, FVector(0, 0, GroundZ), FVector(0, 0, 1));
+				Engine->MoveTo(WorldMoveToLocation);
+				//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*WorldMoveToLocation.ToString()));
+			}
+			else
+			{
+				// Failed to convert to world position
+				UE_LOG(LogTemp, Warning, TEXT("Failed To convert screen to word position !"));
+			}
+		}
+	}
+}
+
 // Called to bind functionality to input
 void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	InputComponent->BindAxis("MoveTo", this, &AGEBaseShip::MoveTo);
+	InputComponent->BindAction("MovementInput", IE_Pressed, this, &AGEBaseShip::MoveToDown);
+	InputComponent->BindAction("MovementInput", IE_Released, this, &AGEBaseShip::MoveToUp);
 	InputComponent->BindAction("MainFire", IE_Released, this, &AGEBaseShip::FireGunReleaseMapping);
 	InputComponent->BindAction("MainFire", IE_Pressed, this, &AGEBaseShip::FireGunDownMapping);
 }
@@ -205,34 +206,33 @@ void AGEBaseShip::UpdateCameraPosition()
 		CameraBoom->TargetArmLength = 600.0;
 	}
 }
-
-void AGEBaseShip::MoveTo(float axis)
+void AGEBaseShip::MoveToUp()
 {
-	APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	check(controller);
-	float targetX, targetY;
-	bool isCurrentlyPressed;
-	controller->GetInputTouchState(ETouchIndex::Touch1, targetX, targetY, isCurrentlyPressed);
-	if (isCurrentlyPressed)
-	{
-		MoveToPoint = FVector2D(targetX,targetY);
-		IsMoving = true;
-		return;
-	}
-	else
-	{
-		if (controller->IsInputKeyDown(EKeys::LeftMouseButton))
-		{
-			if (controller->GetMousePosition(targetX, targetY))
-			{
-				MoveToPoint = FVector2D(targetX, targetY);
-				IsMoving = true;
-				return;
-			}
-		}
-	}
+	HasMovementInput = false;
+	Engine->StopMoving();
+}
 
-	IsMoving = false;
+void AGEBaseShip::MoveToDown()
+{
+	HasMovementInput = true;
+}
+
+FVector AGEBaseShip::GetCurrentForwardVector()
+{
+	check(ShipBody);
+	return ShipBody->GetForwardVector();
+}
+
+FRotator AGEBaseShip::GetCurrentRotation()
+{
+	check(ShipBody);
+	return ShipBody->GetComponentRotation();
+}
+
+void AGEBaseShip::SetRotation(FRotator rotation)
+{
+	check(ShipBody);
+	ShipBody->SetWorldRotation(rotation);
 }
 
 void AGEBaseShip::FireGunDownMapping()
@@ -275,9 +275,7 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
-	FVector Location = Actor->GetActorLocation();
-	MoveToPoint = FVector2D(Location.X, Location.Y);
-	IsMoving = true;
+	Engine->MoveTo(Actor->GetActorLocation());
 }
 
 bool AGEBaseShip::ShouldFireGun()
@@ -333,13 +331,12 @@ void AGEBaseShip::SearchForTarget(float radius)
 	if (!CurrentlyTargetedShip)
 	{
 		FVector Location = GetActorLocation();
-		FVector WorldMoveTo = FVector(MoveToPoint.X, MoveToPoint.Y, Location.Z);
+		const FVector WorldMoveTo = Engine->GetMoveToLocation();
 		if (FVector::DistSquared(Location,WorldMoveTo) <= 10.0)
 		{
 			float x = FMath::RandRange(-400, 400);
 			float y = FMath::RandRange(-400, 400);
-			MoveToPoint = FVector2D(Location.X + x, Location.Y + y);
-			IsMoving = true;
+			Engine->MoveTo(FVector(x,y,Location.Z));
 		}
 	}
 }

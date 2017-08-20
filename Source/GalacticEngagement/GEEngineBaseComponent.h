@@ -14,12 +14,16 @@ class GALACTICENGAGEMENT_API UGEEngineBaseComponent : public UStaticMeshComponen
 {
 	GENERATED_BODY()
 private:
+	FVector WorldMoveToLocation;
+	
 	float CurrentSpeed;
 	float CurrentRotationRate;
 
 protected:
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
-	bool IsMoving;
+	class AGEBaseShip *controlledShip;
+	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
+	bool IsAccelerating;
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
 	float MaxSpeed;
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
@@ -35,7 +39,11 @@ protected:
 
 public:
 	UGEEngineBaseComponent();
-	
+	/* Must be called within world context ex not in constructor */
+	void SetControlledShip(class AGEBaseShip* ship);
+
+	const FVector GetMoveToLocation()const;
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)override;
 
 	virtual void UpdateMovementRates(float DeltaTime);

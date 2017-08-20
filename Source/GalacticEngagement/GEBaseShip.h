@@ -41,9 +41,9 @@ private:
 	UPROPERTY(Category = Camera, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float CameraOffsetScale;
 
-	FVector2D MoveToPoint;
 	bool FireGunToggle;
 	AGEBaseShip* CurrentlyTargetingMe;
+	bool HasMovementInput;
 
 protected:
 	
@@ -56,11 +56,9 @@ protected:
 	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
 	float AttackAngle; 
 
-	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
-	float SlowDownDistance;
-
 private:
 	void UpdateCameraPosition();
+	void UpdateInputs();
 
 public:
 	// Sets default values for this pawn's properties
@@ -86,8 +84,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// Input
-	void MoveTo(float axis);
+	void MoveToDown();
+	void MoveToUp();
 	
+	FVector GetCurrentForwardVector();
+	FRotator GetCurrentRotation();
+	void SetRotation(FRotator rotation);
+
 	void FireGunDownMapping();
 	void FireGunReleaseMapping();
 	virtual void FireSelectedGun();

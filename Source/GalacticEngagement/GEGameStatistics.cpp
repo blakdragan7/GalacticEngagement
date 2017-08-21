@@ -12,3 +12,28 @@ bool GEGameStatistics::FindLookAtAngle2D(const FVector2D& Start, const FVector2D
 	}
 	return false;
 }
+
+bool GEGameStatistics::VectorLessThenVector(FVector & v1, FVector & v2, float tolerance)
+{
+	float v1m = v1.SizeSquared();
+	float v2m = v2.SizeSquared();
+	float dvm = v1m - v2m;
+	return dvm < tolerance;
+}
+
+bool GEGameStatistics::VectorGreaterThenVector(FVector & v1, FVector & v2, float tolerance)
+{
+	return !VectorLessThenVector(v1,v2,-tolerance);
+}
+
+bool GEGameStatistics::VectorLessThenMagnitude(FVector & v1, float m, float tolerance)
+{
+	float v1m = v1.SizeSquared();
+	float dvm = v1m - (m * m);
+	return dvm < tolerance;
+}
+
+bool GEGameStatistics::VectorGreaterThenMagnitude(FVector & v1, float m, float tolerance)
+{
+	return !VectorLessThenMagnitude(v1,m,-tolerance);
+}

@@ -15,10 +15,11 @@ class GALACTICENGAGEMENT_API UGEEngineBaseComponent : public UStaticMeshComponen
 	GENERATED_BODY()
 private:
 	FVector WorldMoveToLocation;
-	
-	float CurrentSpeed;
+	FVector CurrentVelocity;
+	FVector ExternalForce;
+	FRotator DesiredRotation;
 	float CurrentRotationRate;
-
+	bool NeedsDirectionUpdate;
 protected:
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
 	class AGEBaseShip *controlledShip;
@@ -46,7 +47,7 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)override;
 
-	virtual void UpdateMovementRates(float DeltaTime);
+	virtual void UpdateMovementRates(FVector Direction,float DeltaTime);
 	virtual void StopMoving();
 	virtual void MoveTo(FVector WorldMoveToLocation);
 };

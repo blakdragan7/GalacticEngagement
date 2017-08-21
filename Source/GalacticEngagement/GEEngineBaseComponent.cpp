@@ -2,15 +2,16 @@
 
 #include "GEEngineBaseComponent.h"
 #include "GEBaseShip.h"
+#include "GEGameStatistics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 UGEEngineBaseComponent::UGEEngineBaseComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	
 	IsAccelerating = false;
-	MaxSpeed = 1000;
-	MaxAccel = 200;
-	CurrentSpeed = 0;
+	NeedsDirectionUpdate = false;
+	MaxSpeed = 500;
+	MaxAccel = 250;
 	MaxRotationRate = 180;
 	MaxRotationAccel = 90;
 	CurrentRotationRate = 0;
@@ -38,14 +39,18 @@ void UGEEngineBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		{
 			FVector CurrentLocation = controlledShip->GetActorLocation();
 			FRotator CurrentRotation = controlledShip->GetCurrentRotation();
-			FRotator FacingRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
-			if (!FacingRotation.ContainsNaN())
+			if (NeedsDirectionUpdate)
+			{
+				DesiredRotation = UKismetMathLibrary::FindLookAtRotation(CurrentLocation, WorldMoveToLocation);
+				NeedsDirectionUpdate = false;
+			}
+			if (!DesiredRotation.ContainsNaN())
 			{
 				float MaxDeltaYaw = CurrentRotationRate * DeltaTime;
-				float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, FacingRotation.Yaw);
+				float deltaAngle = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, DesiredRotation.Yaw);
 				if (MaxDeltaYaw >= FMath::Abs(deltaAngle))
 				{
-					CurrentRotation.Yaw = FacingRotation.Yaw;
+					CurrentRotation.Yaw = DesiredRotation.Yaw;
 				}
 				else
 				{
@@ -54,14 +59,13 @@ void UGEEngineBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 				controlledShip->SetRotation(CurrentRotation);
 			}
-			FVector ForwardVector = controlledShip->GetCurrentForwardVector();
-			FVector NewLocation = CurrentLocation + (ForwardVector * CurrentSpeed * DeltaTime);
+			FVector NewLocation = CurrentLocation + (CurrentVelocity * DeltaTime);
 			//if(GEngine)GEngine->AddOnScreenDebugMessage(1,15.0f,FColor::Yellow,FString::Printf(TEXT("World Location = %s"),*NewLocation.ToString()));
 			if (!controlledShip->SetActorLocation(NewLocation, true))
 			{
 				UE_LOG(LogTemp, Log,TEXT("Hit Something !!"));
 			}
-			UpdateMovementRates(DeltaTime);
+			UpdateMovementRates(controlledShip->GetCurrentForwardVector() ,DeltaTime);
 		}
 		else
 		{
@@ -70,33 +74,32 @@ void UGEEngineBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 }
 
-void UGEEngineBaseComponent::UpdateMovementRates(float DeltaTime)
+void UGEEngineBaseComponent::UpdateMovementRates(FVector Direction,float DeltaTime)
 {
 	if (IsAccelerating)
-	{
-		if (CurrentSpeed < MaxSpeed)
+	{	
+		FVector DesiredVelocity = CurrentVelocity + (Direction* MaxAccel * DeltaTime);
+		if (GEGameStatistics::VectorLessThenVector(DesiredVelocity,CurrentVelocity))
 		{
-			CurrentSpeed += MaxAccel * DeltaTime;
-			CurrentSpeed = FMath::Min<float>(CurrentSpeed, MaxSpeed);
+			CurrentVelocity = DesiredVelocity;
+			if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Less Then Current Velocity"));
 		}
-		if (CurrentRotationRate < MaxRotationRate)
+		else if (GEGameStatistics::VectorLessThenMagnitude(DesiredVelocity,MaxSpeed))
 		{
-			CurrentRotationRate += MaxRotationAccel * DeltaTime;
-			CurrentRotationRate = FMath::Min<float>(CurrentRotationRate, MaxRotationRate);
+			CurrentVelocity = DesiredVelocity;
+			if(GEngine)GEngine->AddOnScreenDebugMessage(1,1.0f,FColor::Yellow,TEXT("Less Then Max Speed"));
+		}
+		else
+		{
+			// Not less then current speed or max speed
+			if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Not less then current speed or max speed"));
+			CurrentVelocity = CurrentVelocity.ProjectOnToNormal(Direction);
 		}
 	}
-	else
+	if (FMath::Abs(CurrentRotationRate) < MaxRotationRate)
 	{
-		if (CurrentSpeed > 0)
-		{
-			CurrentSpeed -= SpeedDeccel * DeltaTime;
-			CurrentSpeed = FMath::Max<float>(CurrentSpeed, 0);
-		}
-		if (CurrentRotationRate > 0)
-		{
-			CurrentRotationRate -= RotationDeccel * DeltaTime;
-			CurrentRotationRate = FMath::Max<float>(CurrentRotationRate, 0);
-		}
+		CurrentRotationRate += MaxRotationAccel * DeltaTime;
+		CurrentRotationRate = FMath::Min<float>(CurrentRotationRate, MaxRotationRate);
 	}
 }
 
@@ -109,4 +112,5 @@ void UGEEngineBaseComponent::MoveTo(FVector WorldMoveToLocation)
 {
 	this->WorldMoveToLocation = WorldMoveToLocation;
 	IsAccelerating = true;
+	NeedsDirectionUpdate = true;
 }

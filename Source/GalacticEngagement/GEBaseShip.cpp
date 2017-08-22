@@ -15,6 +15,7 @@
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "Runtime/UMG/Public/Components/WidgetComponent.h"
 #include "GEDamageIndicator.h"
 #include "EngineUtils.h"
 // Sets default values
@@ -28,6 +29,9 @@ AGEBaseShip::AGEBaseShip()
 	
 	ShipBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipBody"));
 	ShipBody->SetupAttachment(RootComponent);
+
+	ShipWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Ship HUD"));
+	ShipWidget->SetupAttachment(RootComponent);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -85,6 +89,7 @@ void AGEBaseShip::BeginPlay()
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
 	Engine->SetControlledShip(this);
+	if(ShipHUDWidget){ShipWidget->SetWidgetClass(ShipHUDWidget);
 }
 
 // Called every frame
@@ -271,6 +276,11 @@ void AGEBaseShip::OnShipDeath()
 void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 {
 	CurrentlyTargetingMe = aggresser;
+}
+
+float AGEBaseShip::GetHealthPercentage()
+{
+	return (float)CurrentHealth / (float)MaxHealth;
 }
 
 void AGEBaseShip::MoveTo(AActor * Actor)

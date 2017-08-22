@@ -34,6 +34,8 @@ private:
 	class UGEGunBaseComponent* MainGun;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UGEGunBaseComponent* SecondaryGun;
+	UPROPERTY(Category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* ShipWidget;
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
@@ -66,15 +68,17 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 CurrentHealth;
-	UPROPERTY(Category = "Ship Mechanics", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
 	
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
 	float GroundZ;
 	UPROPERTY(Category = "Controls",EditAnywhere, BlueprintReadWrite)
 	ESelectedGun SelectedGun;
+	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UUserWidget> ShipHUDWidget;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	/** Damage Interface */
@@ -105,6 +109,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
 	void ShipDestroyed();
 
+	UFUNCTION(BlueprintPure, Category = "Ship Stats")
+	float GetHealthPercentage();
 	/** AI Functions */
 	void MoveTo(AActor* Actor);
 	virtual bool ShouldFireGun();

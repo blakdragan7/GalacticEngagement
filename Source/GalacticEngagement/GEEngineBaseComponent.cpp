@@ -82,18 +82,19 @@ void UGEEngineBaseComponent::UpdateMovementRates(FVector Direction,float DeltaTi
 		if (GEGameStatistics::VectorLessThenVector(DesiredVelocity,CurrentVelocity))
 		{
 			CurrentVelocity = DesiredVelocity;
-			if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Less Then Current Velocity"));
+			//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Less Then Current Velocity"));
 		}
 		else if (GEGameStatistics::VectorLessThenMagnitude(DesiredVelocity,MaxSpeed))
 		{
 			CurrentVelocity = DesiredVelocity;
-			if(GEngine)GEngine->AddOnScreenDebugMessage(1,1.0f,FColor::Yellow,TEXT("Less Then Max Speed"));
+			//if(GEngine)GEngine->AddOnScreenDebugMessage(1,1.0f,FColor::Yellow,TEXT("Less Then Max Speed"));
 		}
 		else
 		{
 			// Not less then current speed or max speed
-			if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Not less then current speed or max speed"));
-			CurrentVelocity = CurrentVelocity.ProjectOnToNormal(Direction);
+			//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Not less then current speed or max speed"));
+			FVector ProjectedVector = CurrentVelocity.ProjectOnToNormal(Direction) * 0.99;
+			CurrentVelocity = FMath::Lerp<FVector, float>(CurrentVelocity, ProjectedVector, DeltaTime);
 		}
 	}
 	if (FMath::Abs(CurrentRotationRate) < MaxRotationRate)

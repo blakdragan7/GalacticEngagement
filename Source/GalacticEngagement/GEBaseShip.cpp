@@ -76,7 +76,6 @@ AGEBaseShip::AGEBaseShip()
 	CurrentHealth = 0;
 
 	CurrentlyTargetedShip = 0;
-	CurrentlyTargetingMe = 0;
 
 	HasMovementInput = false;
 
@@ -89,7 +88,7 @@ void AGEBaseShip::BeginPlay()
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
 	Engine->SetControlledShip(this);
-	if(ShipHUDWidget){ShipWidget->SetWidgetClass(ShipHUDWidget);
+	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
 }
 
 // Called every frame
@@ -97,15 +96,13 @@ void AGEBaseShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsValid(this))
-	{
-		UpdateInputs();
-		UpdateCameraPosition();
-		if (FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
+	UpdateInputs();
+	UpdateCameraPosition();
+	if (FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
 
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
-			100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
-	}
+	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
+		100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
+	
 }
 
 void AGEBaseShip::UpdateInputs()
@@ -193,8 +190,10 @@ int32 AGEBaseShip::GetHealth()
 
 void AGEBaseShip::UpdateCameraPosition()
 {
-	if (CurrentlyTargetingMe)
+	if (AllCurrentlyTargetingMe.Num() > 0)
 	{
+		AGEBaseShip* CurrentlyTargetingMe = AllCurrentlyTargetingMe[0];
+
 		if (IsValid(CurrentlyTargetingMe))
 		{
 			float distance = GetDistanceTo(CurrentlyTargetingMe) * CameraOffsetScale;
@@ -203,7 +202,7 @@ void AGEBaseShip::UpdateCameraPosition()
 		}
 		else
 		{
-			CurrentlyTargetingMe = 0;
+			AllCurrentlyTargetingMe.Remove(CurrentlyTargetingMe);
 		}
 	}
 	else
@@ -275,7 +274,13 @@ void AGEBaseShip::OnShipDeath()
 
 void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 {
-	CurrentlyTargetingMe = aggresser;
+	AllCurrentlyTargetingMe.AddUnique(aggresser);
+	AllCurrentlyTargetingMe.Sort([&](const AGEBaseShip& LHS, const AGEBaseShip& RHS) 
+	{ 
+		float dstl = GetSquaredDistanceTo(&LHS);
+		float dstr = GetSquaredDistanceTo(&RHS);
+		return dstl > dstr;
+	});
 }
 
 float AGEBaseShip::GetHealthPercentage()
@@ -286,6 +291,14 @@ float AGEBaseShip::GetHealthPercentage()
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
 	Engine->MoveTo(Actor->GetActorLocation());
+}
+
+void AGEBaseShip::InvalidateTarget()
+{
+	if (CurrentlyTargetedShip)
+	{
+		CurrentlyTargetedShip = false;
+	}
 }
 
 bool AGEBaseShip::ShouldFireGun()

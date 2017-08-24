@@ -44,7 +44,7 @@ private:
 	float CameraOffsetScale;
 
 	bool FireGunToggle;
-	AGEBaseShip* CurrentlyTargetingMe;
+	TArray<AGEBaseShip*> AllCurrentlyTargetingMe;
 	bool HasMovementInput;
 
 protected:
@@ -113,6 +113,7 @@ public:
 	float GetHealthPercentage();
 	/** AI Functions */
 	void MoveTo(AActor* Actor);
+	virtual void InvalidateTarget();
 	virtual bool ShouldFireGun();
 	virtual bool ShouldFireMainGun();
 	virtual bool ShouldFireSecondaryGun();

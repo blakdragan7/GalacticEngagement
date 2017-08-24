@@ -11,27 +11,34 @@ void AGEBaseEnemyAIController::Tick(float DeltaTime)
 	{
 		if (AActor* Target = ControlledShip->GetTarget())
 		{
-			if (ControlledShip->ShouldFireGun())
+			if (IsValid(Target))
 			{
-				if (ControlledShip->ShouldFireMainGun())
+				if (ControlledShip->ShouldFireGun())
 				{
-					ControlledShip->SelectedGun = ESelectedGun::SG_Main;
-					ControlledShip->FireGunDownMapping();
-				}
-				else if (ControlledShip->ShouldFireSecondaryGun())
-				{
-					ControlledShip->SelectedGun = ESelectedGun::SG_Secondary;
-					ControlledShip->FireGunDownMapping();
+					if (ControlledShip->ShouldFireMainGun())
+					{
+						ControlledShip->SelectedGun = ESelectedGun::SG_Main;
+						ControlledShip->FireGunDownMapping();
+					}
+					else if (ControlledShip->ShouldFireSecondaryGun())
+					{
+						ControlledShip->SelectedGun = ESelectedGun::SG_Secondary;
+						ControlledShip->FireGunDownMapping();
+					}
+					else
+					{
+						ControlledShip->FireGunReleaseMapping();
+					}
 				}
 				else
 				{
 					ControlledShip->FireGunReleaseMapping();
+					ControlledShip->MoveTo(Target);
 				}
 			}
 			else
 			{
-				ControlledShip->FireGunReleaseMapping();
-				ControlledShip->MoveTo(Target);
+				ControlledShip->InvalidateTarget();
 			}
 		}
 		else

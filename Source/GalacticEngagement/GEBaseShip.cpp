@@ -62,7 +62,7 @@ AGEBaseShip::AGEBaseShip()
 	Thrusters = CreateDefaultSubobject<UGEThrusterBaseComponent>(TEXT("Thrusters"));
 	Thrusters->SetupAttachment(ShipBody);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
 	GroundZ = 112;

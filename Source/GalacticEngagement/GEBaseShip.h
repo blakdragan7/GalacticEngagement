@@ -47,6 +47,8 @@ private:
 	TArray<AGEBaseShip*> AllCurrentlyTargetingMe;
 	bool HasMovementInput;
 
+	class GETravelManagerBase* TravelManager;
+
 protected:
 	
 	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
@@ -58,6 +60,7 @@ protected:
 	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
 	float AttackAngle; 
 
+
 private:
 	void UpdateCameraPosition();
 	void UpdateInputs();
@@ -66,6 +69,8 @@ public:
 	// Sets default values for this pawn's properties
 	AGEBaseShip();
 	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void ConstructComponents();
 
 public:
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
@@ -73,8 +78,15 @@ public:
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
 	
-	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
-	float GroundZ;
+	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGEGunBaseComponent> PrimaryWeaponClass;
+	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGEGunBaseComponent> SecondaryWeaponClass;
+	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGEThrusterBaseComponent> ThrusterClass;
+	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UGEEngineBaseComponent> EngineClass;
+
 	UPROPERTY(Category = "Controls",EditAnywhere, BlueprintReadWrite)
 	ESelectedGun SelectedGun;
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite)
@@ -93,10 +105,13 @@ public:
 	
 	FVector GetCurrentForwardVector();
 	FRotator GetCurrentRotation();
+	FVector GetCurrentLocation();
+	void SetRotation(FQuat rotation);
 	void SetRotation(FRotator rotation);
 
 	void FireGunDownMapping();
 	void FireGunReleaseMapping();
+	virtual bool SetLocation(const FVector& NewLocation, bool bSweep, FHitResult& OutSweepHitResult); // Work around for root component being a scene component
 	virtual void FireSelectedGun();
 	virtual void OnShipDeath();
 	virtual void WasTargetBy(AGEBaseShip* aggresser);

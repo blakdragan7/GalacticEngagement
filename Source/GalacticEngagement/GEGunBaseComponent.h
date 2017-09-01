@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class GALACTICENGAGEMENT_API UGEGunBaseComponent : public UStaticMeshComponent
 {
 	GENERATED_BODY()

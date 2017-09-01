@@ -3,6 +3,7 @@
 #include "GEGunBaseComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "GEAmmoBase.h"
 
 UGEGunBaseComponent::UGEGunBaseComponent() : UStaticMeshComponent()
@@ -13,6 +14,10 @@ UGEGunBaseComponent::UGEGunBaseComponent() : UStaticMeshComponent()
 	ShotCountDown = 0.0f;
 	ShotsPerSecond = 3.0f;
 	ToggleShoot = false;
+
+	
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipSGun.BaseShipSGun'"));
+	if (StaticMeshCube.Object)SetStaticMesh(StaticMeshCube.Object);
 }
 
 void UGEGunBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)

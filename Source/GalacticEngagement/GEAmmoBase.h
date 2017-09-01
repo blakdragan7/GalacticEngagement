@@ -13,14 +13,16 @@ class GALACTICENGAGEMENT_API AGEAmmoBase : public AActor
 private:
 	UPROPERTY(Category = Mesh, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* AmmoMesh;
-
-	UPROPERTY(Category = Movement, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovement;
+/*
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
-
+*/
 	AActor* ignoredActor;
+
+protected:
+	UPROPERTY(Category = Collision, VisibleAnywhere, BlueprintReadOnly)
+	FVector Velocity;
 	
 public:	
 	// Sets default values for this actor's properties

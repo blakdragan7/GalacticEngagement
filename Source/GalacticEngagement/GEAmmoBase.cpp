@@ -7,6 +7,7 @@
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GEDamageInterface.h"
+#include "GETravelManagerBase.h"
 
 // Sets default values
 AGEAmmoBase::AGEAmmoBase()
@@ -19,22 +20,14 @@ AGEAmmoBase::AGEAmmoBase()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AmmoRoot"));
 	AmmoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AmmoMesh"));
 	AmmoMesh->SetupAttachment(RootComponent);
+	AmmoMesh->SetWorldScale3D(FVector(0.1, 0.1, 0.1));
 
-	FrontFacingArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("FrontFacingArrow"));
+	/*FrontFacingArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("FrontFacingArrow"));
 	FrontFacingArrow->SetupAttachment(AmmoMesh);
-	FrontFacingArrow->bHiddenInGame = false;
-
-	AmmoMesh->SetWorldScale3D(FVector(0.1,0.1,0.1));
+	FrontFacingArrow->bHiddenInGame = false;*/
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
 	if (StaticMeshCube.Object)AmmoMesh->SetStaticMesh(StaticMeshCube.Object);
-
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	//ProjectileMovement->SetUpdatedComponent(AmmoMesh);
-	ProjectileMovement->InitialSpeed = 0.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
-	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->ProjectileGravityScale = 0;
 	
 	// Setup Collision
 	AmmoMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -42,9 +35,10 @@ AGEAmmoBase::AGEAmmoBase()
 	AmmoMesh->OnComponentBeginOverlap.AddDynamic(this, &AGEAmmoBase::OnComponentOverlapBegin);
 	//AmmoMesh->OnComponentEndOverlap.AddDynamic(this, &AGEAmmoBase::OnXXXOverlapEnd);
 
-	TimeToLive = 1;
+	TimeToLive = 10;
 	InitialSpeed = 2000;
 	MaxDamage = 10;
+
 }
 
 // Called when the game starts or when spawned
@@ -58,11 +52,11 @@ void AGEAmmoBase::BeginPlay()
 void AGEAmmoBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(),
-		GetActorLocation() + (ProjectileMovement->Velocity.GetSafeNormal() * 100.0),100.f, 
-		FColor::Red, false, -1.f, (uint8)'\000', 10.f);
+
 	if (bWasLaunched)
 	{
+		FVector Location = GetActorLocation();
+		AddActorWorldOffset(Velocity * DeltaTime);
 		TimeToLive -= DeltaTime;
 		if (TimeToLive <= 0)
 		{
@@ -73,7 +67,7 @@ void AGEAmmoBase::Tick(float DeltaTime)
 
 void AGEAmmoBase::Launch(AActor* LaunchingActor, FVector Direction)
 {
-	ProjectileMovement->Velocity = Direction*InitialSpeed;
+	Velocity = Direction * InitialSpeed;
 	ignoredActor = LaunchingActor;
 	bWasLaunched = true;
 }

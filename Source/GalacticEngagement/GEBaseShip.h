@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "GEDamageInterface.h"
+#include "Interfaces/GEDamageInterface.h"
 #include "GEBaseShip.generated.h"
 
 UENUM(BlueprintType)		//"BlueprintType" is essential to include
@@ -77,6 +77,9 @@ public:
 	int32 CurrentHealth;
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
+
+	UPROPERTY(Category = "Ship UI", EditAnywhere, BlueprintReadWrite)
+	int32 StartingCameraArmLength;
 	
 	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UGEGunBaseComponent> PrimaryWeaponClass;
@@ -115,6 +118,23 @@ public:
 	virtual void FireSelectedGun();
 	virtual void OnShipDeath();
 	virtual void WasTargetBy(AGEBaseShip* aggresser);
+	/*
+	* Add a Velcoity Effector to this ship
+	* An Effector is an object that affects the veleocity of this ship
+	* somehow exlcuding things like bouncing, so a gravity well like a planet
+	* would count but an astroid that would only effect this ship by bouncing
+	* after collision would not cound
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Control")
+	void AddVelocityEffector(AActor* effector);
+	UFUNCTION(BlueprintCallable, Category = "Control")
+	void removeVelocityEffector(AActor* effector);
+	/*
+	* Called Every Frame, percentage is the current percent the thruster is runnin compared to max or (currentspeed / maxspeed)
+	* This is meant for doing effects such as showing a flame behind the ship etc.. to show that the ship is moving
+	*/
+	UFUNCTION(BlueprintImplementableEvent, Category = "Movement")
+	void Thrusting(float percentage);
 	/** Called when Weapon Fired*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Control")
 	void GunFired(class UGEGunBaseComponent* FiredGun,ESelectedGun TheSelectedGun);

@@ -38,28 +38,34 @@ bool GEGameStatistics::VectorGreaterThenMagnitude(FVector & v1, float m, float t
 	return !VectorLessThenMagnitude(v1,m,-tolerance);
 }
 
-const float GEGameStatistics::MaxVectorComponent(FVector v)
+const float GEGameStatistics::VectorPercentageOfMag(FVector & vector,float mag)
+{
+	if (vector.IsNearlyZero()) return 0;
+	return vector.SizeSquared() / (mag*mag);
+}
+
+const float GEGameStatistics::MaxVectorComponent(FVector &v)
 {
 	return FMath::Max3<float>(v.X,v.Y,v.Z);
 }
 
-const float GEGameStatistics::MinVectorComponent(FVector v)
+const float GEGameStatistics::MinVectorComponent(FVector &v)
 {
 	return FMath::Min3<float>(v.X, v.Y, v.Z);
 }
 
-FMatrix GEGameStatistics::RotationMatrix(FVector center,FVector eye, FVector up)
+FMatrix GEGameStatistics::RotationMatrix(FVector& center,FVector& eye, FVector& up)
 {
 	FVector Direction = (eye - center);
 	return FRotationMatrix::MakeFromZX(up, Direction);
 }
 
-FQuat GEGameStatistics::QuatFromDirAndUp(FVector center, FVector eye, FVector up)
+FQuat GEGameStatistics::QuatFromDirAndUp(FVector& center, FVector& eye, FVector& up)
 {
 	return RotationMatrix(center, eye, up).ToQuat();
 }
 
-FRotator GEGameStatistics::RotatorFromDirAndUp(FVector center, FVector eye, FVector up)
+FRotator GEGameStatistics::RotatorFromDirAndUp(FVector& center, FVector& eye, FVector& up)
 {
 	return RotationMatrix(center, eye, up).Rotator();
 }

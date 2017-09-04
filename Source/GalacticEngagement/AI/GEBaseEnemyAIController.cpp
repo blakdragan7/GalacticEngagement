@@ -44,9 +44,8 @@ void AGEBaseEnemyAIController::Tick(float DeltaTime)
 		else
 		{
 			ControlledShip->FireGunReleaseMapping();
-			ControlledShip->SearchForTarget(1000);
+			ControlledShip->SearchForTarget(100000);
 		}
-		
 	}
 
 }

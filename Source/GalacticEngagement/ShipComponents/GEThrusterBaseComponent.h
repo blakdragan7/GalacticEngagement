@@ -14,13 +14,19 @@ class GALACTICENGAGEMENT_API UGEThrusterBaseComponent : public UStaticMeshCompon
 {
 	GENERATED_BODY()
 private:
+	FVector2D ScreenMoveToLocation;
 	FVector WorldMoveToLocation;
 	FVector CurrentVelocity;
 	FVector ExternalForce;
 	FRotator DesiredRotation;
 	float CurrentRotationRate;
-	bool NeedsDirectionUpdate;
+	bool NeedsScreenDirectionUpdate;
+	bool NeedsWorldDirectionUpdate;
 	bool HitLastFrame;
+
+	TArray<AActor*> Effectors;
+
+	void Thrusting(float percentage);
 
 protected:
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
@@ -49,10 +55,11 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)override;
 
+	virtual void UpdateVelocityFromEffectors(FVector CurrentPosition, float DeltaTime);
 	virtual void UpdateMovementRates(FVector Direction, float DeltaTime);
 	virtual void StopMoving();
+	virtual void MoveTo(FVector2D ScrenMoveToLocation);
 	virtual void MoveTo(FVector WorldMoveToLocation);
-	
-	
-	
+	virtual bool AddEffector(AActor * actor);
+	virtual bool RemoveEffector(AActor * actor);
 };

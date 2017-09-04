@@ -3,11 +3,12 @@
 #include "GEBaseShip.h"
 //#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
-#include "GEGunBaseComponent.h"
+#include "ShipComponents/GEGunBaseComponent.h"
+#include "ShipComponents/GEEngineBaseComponent.h"
+#include "ShipComponents/GEThrusterBaseComponent.h"
+#include "Math/GEGameStatistics.h"
+#include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
-#include "GEEngineBaseComponent.h"
-#include "GEThrusterBaseComponent.h"
-#include "GEGameStatistics.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
@@ -21,6 +22,8 @@
 // Sets default values
 AGEBaseShip::AGEBaseShip()
 {
+	AIControllerClass = AGEBaseEnemyAIController::StaticClass();
+
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -36,7 +39,6 @@ AGEBaseShip::AGEBaseShip()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetWorldRotation(FRotator(-90, 0, 0));
-	CameraBoom->TargetArmLength = 600.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 	CameraBoom->bDoCollisionTest = false;
 
@@ -57,6 +59,8 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterClass = UGEThrusterBaseComponent::StaticClass();
 
 	CameraOffsetScale = 2;
+
+	StartingCameraArmLength = 600;
 
 	AttackAngle = 45.0;
 	AttackDistance = 1000.0;
@@ -83,6 +87,7 @@ void AGEBaseShip::BeginPlay()
 
 void AGEBaseShip::OnConstruction(const FTransform & Transform)
 {
+	CameraBoom->TargetArmLength = StartingCameraArmLength; // The camera follows at this distance behind the character	
 	ConstructComponents();
 }
 
@@ -211,13 +216,14 @@ void AGEBaseShip::UpdateInputs()
 			return;
 		}
 
-		Thrusters->MoveTo(FVector(ScreenMoveToPoint,0));
+		Thrusters->MoveTo(ScreenMoveToPoint);
 	}
 }
 
 // Called to bind functionality to input
 void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	UE_LOG(LogTemp,Warning,TEXT("setup input"));
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	InputComponent->BindAction("MovementInput", IE_Pressed, this, &AGEBaseShip::MoveToDown);
 	InputComponent->BindAction("MovementInput", IE_Released, this, &AGEBaseShip::MoveToUp);
@@ -250,7 +256,7 @@ void AGEBaseShip::UpdateCameraPosition()
 		if (IsValid(CurrentlyTargetingMe))
 		{
 			float distance = GetDistanceTo(CurrentlyTargetingMe) * CameraOffsetScale;
-			distance = FMath::Max<float>(distance, 1200.0);
+			distance = FMath::Max<float>(distance, StartingCameraArmLength);
 			CameraBoom->TargetArmLength = distance;
 		}
 		else
@@ -260,7 +266,7 @@ void AGEBaseShip::UpdateCameraPosition()
 	}
 	else
 	{
-		CameraBoom->TargetArmLength = 1200.0;
+		CameraBoom->TargetArmLength = StartingCameraArmLength;
 	}
 }
 void AGEBaseShip::MoveToUp()
@@ -371,6 +377,16 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 		float dstr = GetSquaredDistanceTo(&RHS);
 		return dstl > dstr;
 	});
+}
+
+void AGEBaseShip::AddVelocityEffector(AActor * effector)
+{
+	Thrusters->AddEffector(effector);
+}
+
+void AGEBaseShip::removeVelocityEffector(AActor * effector)
+{
+	Thrusters->RemoveEffector(effector);
 }
 
 float AGEBaseShip::GetHealthPercentage()

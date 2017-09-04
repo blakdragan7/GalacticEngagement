@@ -6,8 +6,7 @@
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "DrawDebugHelpers.h"
-#include "GEDamageInterface.h"
-#include "GETravelManagerBase.h"
+#include "Interfaces/GEDamageInterface.h"
 
 // Sets default values
 AGEAmmoBase::AGEAmmoBase()

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GESphericalTravelManager.h"
-#include "GEGameStatistics.h"
+#include "Math/GEGameStatistics.h"
 #include "GEBaseShip.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"

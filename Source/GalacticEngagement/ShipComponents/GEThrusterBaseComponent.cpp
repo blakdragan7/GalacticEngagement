@@ -2,16 +2,24 @@
 
 #include "GEThrusterBaseComponent.h"
 #include "GEBaseShip.h"
-#include "GEGameStatistics.h"
+#include "Interfaces/GEVelocityEffector.h"
+#include "Math/GEGameStatistics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+
+void UGEThrusterBaseComponent::Thrusting(float percentage)
+{
+	if (IsValid(controlledShip))
+		controlledShip->Thrusting(percentage);
+}
 
 UGEThrusterBaseComponent::UGEThrusterBaseComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
 	IsAccelerating = false;
-	NeedsDirectionUpdate = false;
+	NeedsScreenDirectionUpdate = false;
+	NeedsWorldDirectionUpdate = false;
 	HitLastFrame = false;
 	MaxSpeed = 500;
 	MaxAccel = 250;
@@ -55,14 +63,20 @@ void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 				CurrentVelocity = Direction * CurrentVelocity.Size();
 				UE_LOG(LogTemp, Log, TEXT("Hit Something !!"));
 			}
-			if (NeedsDirectionUpdate)
+			if (NeedsScreenDirectionUpdate)
 			{
-				const FVector ViewportSize = FVector(GEngine->GameViewport->Viewport->GetSizeXY());
-				const FVector ViewportCenter = FVector(ViewportSize.X / 2, ViewportSize.Y / 2, 0);
+				const FVector2D ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
+				const FVector2D ViewportCenter = ViewportSize / 2;
 
-				DesiredRotation = UKismetMathLibrary::MakeRotFromX(WorldMoveToLocation - ViewportCenter);
+				FVector X = FVector(ScreenMoveToLocation - ViewportCenter,0);
+
+				DesiredRotation = UKismetMathLibrary::MakeRotFromX(X);
 				DesiredRotation.Yaw += 90; // Convert To Correct Coord Space
 				DesiredRotation.Normalize();
+			}
+			else if (NeedsWorldDirectionUpdate)
+			{
+				DesiredRotation = UKismetMathLibrary::MakeRotFromX(WorldMoveToLocation - CurrentLocation);
 			}
 			if (!DesiredRotation.ContainsNaN())
 			{
@@ -82,11 +96,20 @@ void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			}
 
 			UpdateMovementRates(controlledShip->GetCurrentForwardVector(), DeltaTime);
+			UpdateVelocityFromEffectors(actualLocation,DeltaTime);
 		}
 		else
 		{
 			controlledShip = 0;
 		}
+	}
+}
+
+void UGEThrusterBaseComponent::UpdateVelocityFromEffectors(FVector CurrentPosition,float DeltaTime)
+{
+	for (AActor* effector : Effectors)
+	{
+		CurrentVelocity += IGEVelocityEffector::Execute_GetVelocityDeltaForPosition(effector,CurrentPosition) * DeltaTime;
 	}
 }
 
@@ -109,7 +132,7 @@ void UGEThrusterBaseComponent::UpdateMovementRates(FVector Direction, float Delt
 		{
 			// Not less then current speed or max speed
 			//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Not less then current speed or max speed"));
-			FVector ProjectedVector = CurrentVelocity.ProjectOnToNormal(Direction) * 0.99;
+			FVector ProjectedVector = CurrentVelocity.ProjectOnToNormal(Direction);
 			CurrentVelocity = FMath::Lerp<FVector, float>(CurrentVelocity, ProjectedVector, DeltaTime);
 		}
 	}
@@ -118,6 +141,8 @@ void UGEThrusterBaseComponent::UpdateMovementRates(FVector Direction, float Delt
 		CurrentRotationRate += MaxRotationAccel * DeltaTime;
 		CurrentRotationRate = FMath::Min<float>(CurrentRotationRate, MaxRotationRate);
 	}
+
+	Thrusting(GEGameStatistics::VectorPercentageOfMag(CurrentVelocity,MaxSpeed));
 }
 
 void UGEThrusterBaseComponent::StopMoving()
@@ -125,9 +150,32 @@ void UGEThrusterBaseComponent::StopMoving()
 	IsAccelerating = false;
 }
 
+void UGEThrusterBaseComponent::MoveTo(FVector2D ScreenMoveToLocation)
+{
+	this->ScreenMoveToLocation = ScreenMoveToLocation;
+	IsAccelerating = true;
+	NeedsScreenDirectionUpdate = true;
+}
+
 void UGEThrusterBaseComponent::MoveTo(FVector WorldMoveToLocation)
 {
 	this->WorldMoveToLocation = WorldMoveToLocation;
 	IsAccelerating = true;
-	NeedsDirectionUpdate = true;
+	NeedsWorldDirectionUpdate = true;
+}
+
+bool UGEThrusterBaseComponent::AddEffector(AActor * actor)
+{
+	if (actor->GetClass()->ImplementsInterface(UGEVelocityEffector::StaticClass()))
+	{
+		Effectors.AddUnique(actor);
+		return true;
+	}
+	return false;
+}
+
+bool UGEThrusterBaseComponent::RemoveEffector(AActor * actor)
+{
+	Effectors.Remove(actor);
+	return true;
 }

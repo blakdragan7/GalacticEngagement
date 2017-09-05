@@ -23,72 +23,80 @@ void AGEMeleePlayerController::Tick(float DeltaTime)
 
 void AGEMeleePlayerController::BeginPlay()
 {
-	for (FBackgroundPlane &plane : BackgroundPlanes)
+	if (IsLocalController())
 	{
-		plane.SpawnAllActorsForBackground(GetWorld());
+		for (FBackgroundPlane &plane : BackgroundPlanes)
+		{
+			plane.SpawnAllActorsForBackground(GetWorld());
+		}
 	}
 }
 
 void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
 {
-	BackgroundPlanes.Empty();
-
-	int32 actorclasssize = BackgroundClasses.Num();
-	if (actorclasssize != BackgroundLayerDensity.Num())
+	if (IsLocalController())
 	{
-		BackgroundLayerDensity.SetNum(actorclasssize,true);
-	}
-	if (actorclasssize != LayerZPlanes.Num())
-	{
-		LayerZPlanes.SetNum(actorclasssize,true);
-	}
-	if (actorclasssize != BackgroundPlanes.Num())
-	{
-		BackgroundPlanes.SetNum(actorclasssize, true);
-	}
+		BackgroundPlanes.Empty();
 
-	for (int32 i = 0; i < actorclasssize; i++)
-	{
-		FBackgroundPlane plane;
-		
-		plane.SetActorClass(BackgroundClasses[i]);
-		plane.SetPlaneNormal(FVector(0, 0, 1));
-		plane.SetActorDensity(BackgroundLayerDensity[i]);
-		plane.SetFarPlane(LayerZPlanes[i]);
+		int32 actorclasssize = BackgroundClasses.Num();
+		if (actorclasssize != BackgroundLayerDensity.Num())
+		{
+			BackgroundLayerDensity.SetNum(actorclasssize, true);
+		}
+		if (actorclasssize != LayerZPlanes.Num())
+		{
+			LayerZPlanes.SetNum(actorclasssize, true);
+		}
+		if (actorclasssize != BackgroundPlanes.Num())
+		{
+			BackgroundPlanes.SetNum(actorclasssize, true);
+		}
 
-		BackgroundPlanes.Add(plane);
+		for (int32 i = 0; i < actorclasssize; i++)
+		{
+			FBackgroundPlane plane;
+
+			plane.SetActorClass(BackgroundClasses[i]);
+			plane.SetPlaneNormal(FVector(0, 0, 1));
+			plane.SetActorDensity(BackgroundLayerDensity[i]);
+			plane.SetFarPlane(LayerZPlanes[i]);
+
+			BackgroundPlanes.Add(plane);
+		}
 	}
-
 }
 
 void AGEMeleePlayerController::UpdatePlanes()
 {
-	if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
+	if (IsLocalController())
 	{
-		const FVector2D ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
-
-		FVector LowerLeft, LowerLeftDirection;
-		DeprojectScreenPositionToWorld(0, 0, LowerLeft, LowerLeftDirection);
-
-		FVector Center, CenterDirection;
-		DeprojectScreenPositionToWorld(ViewportSize.X / 2, ViewportSize.Y / 2, Center, CenterDirection);
-
-		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
+		if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
 		{
-			FBackgroundPlane& plane = BackgroundPlanes[i];
+			const FVector2D ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
 
-			float farplane = plane.GetFarPlane();
-			float linedistance = FMath::Abs(LowerLeft.Z - farplane);
+			FVector LowerLeft, LowerLeftDirection;
+			DeprojectScreenPositionToWorld(0, 0, LowerLeft, LowerLeftDirection);
 
-			FVector BottomLeft = FMath::LinePlaneIntersection(LowerLeft, LowerLeft + (LowerLeftDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
-			FVector Origin = FMath::LinePlaneIntersection(Center, Center + (CenterDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
+			FVector Center, CenterDirection;
+			DeprojectScreenPositionToWorld(ViewportSize.X / 2, ViewportSize.Y / 2, Center, CenterDirection);
 
-			FVector Distance = (Origin - BottomLeft).GetAbs();
+			for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
+			{
+				FBackgroundPlane& plane = BackgroundPlanes[i];
 
-			plane.SetOrigin(Origin);
-			plane.SetRadiusToEdggeSqr(Distance.SizeSquared2D());
-		
-			plane.UpdateActors();
+				float farplane = plane.GetFarPlane();
+				float linedistance = FMath::Abs(LowerLeft.Z - farplane);
+
+				FVector BottomLeft = FMath::LinePlaneIntersection(LowerLeft, LowerLeft + (LowerLeftDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
+				FVector Origin = FMath::LinePlaneIntersection(Center, Center + (CenterDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
+
+				FVector Distance = (Origin - BottomLeft).GetAbs();
+
+				plane.SetOrigin(Origin);
+				plane.SetRadiusToEdggeSqr(Distance.SizeSquared2D());
+
+				plane.UpdateActors();
+			}
 		}
 	}
 }

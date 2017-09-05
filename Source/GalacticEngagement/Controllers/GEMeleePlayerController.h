@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/BackgroundPlane.h"
 #include "GameFramework/PlayerController.h"
 #include "GEMeleePlayerController.generated.h"
 
@@ -14,28 +15,23 @@ class GALACTICENGAGEMENT_API AGEMeleePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 private:
-	FVector CameraBounds;
-	// Collision box used for determining if an object should be wraped
-	UPROPERTY(Category = Background, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionBox;
+	TArray<FBackgroundPlane> BackgroundPlanes;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Environment)
-	TSubclassOf<AActor> StarClass;
+	TArray<TSubclassOf<AActor>> BackgroundClasses;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawning)
-	int32 StarDensity;
+	TArray<int32> BackgroundLayerDensity;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spawning)
-	float StarZPlane;
-
-private:
-	void SpawnAllStars();
-	void AscertainCameraBounds();
+	TArray<float> LayerZPlanes;
+	
+protected:
+	virtual void UpdatePlanes();
 
 public:
 	AGEMeleePlayerController();
 	virtual void Tick(float DeltaTime) override;
 	void BeginPlay()override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
-	void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-	void OnComponentOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

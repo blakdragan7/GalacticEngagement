@@ -94,6 +94,10 @@ public:
 	ESelectedGun SelectedGun;
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UUserWidget> ShipHUDWidget;
+
+	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
+	TArray<class UComponentMountPoint*> MountPoints;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	/** Damage Interface */
@@ -118,6 +122,7 @@ public:
 	virtual void FireSelectedGun();
 	virtual void OnShipDeath();
 	virtual void WasTargetBy(AGEBaseShip* aggresser);
+
 	/*
 	* Add a Velcoity Effector to this ship
 	* An Effector is an object that affects the veleocity of this ship

@@ -6,6 +6,7 @@
 #include "ShipComponents/GEGunBaseComponent.h"
 #include "ShipComponents/GEEngineBaseComponent.h"
 #include "ShipComponents/GEThrusterBaseComponent.h"
+#include "ShipComponents/ComponentMountPoint.h"
 #include "Math/GEGameStatistics.h"
 #include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
@@ -83,6 +84,16 @@ void AGEBaseShip::BeginPlay()
 	if (!IsValid( Engine))ConstructComponents();
 	Thrusters->SetControlledShip(this);
 	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
+
+	for (auto mount: MountPoints)
+	{
+		switch (mount->type)
+		{
+		case EComponentMountType::CM_MainGun:
+			MainGun->SetWorldTransform(mount->GetComponentTransform());
+			break;
+		}
+	}
 }
 
 void AGEBaseShip::OnConstruction(const FTransform & Transform)

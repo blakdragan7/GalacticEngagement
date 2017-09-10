@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GEGameStatistics.h"
+#include "Runtime/Engine/Classes/Components/SceneComponent.h"
 
 bool GEGameStatistics::FindLookAtAngle2D(const FVector2D& Start, const FVector2D& Target, float &Angle)
 {

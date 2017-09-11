@@ -33,8 +33,13 @@ public:
 	UPROPERTY(Category = Type, EditAnywhere, BlueprintReadWrite)
 	EShipComponentType AcceptedComponentType;
 
+	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	bool ShouldTick;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void SetEnabled(bool enabled);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool SetComponent(class UShipComponentBase* inComponent);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool RemoveComponent(class UShipComponentBase* outOldComponent=0);
+	bool RemoveComponent(class UShipComponentBase* outOldComponent);
 };

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/StaticMeshComponent.h"
+#include "ShipComponentBase.h"
 #include "GEEngineBaseComponent.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable)
-class GALACTICENGAGEMENT_API UGEEngineBaseComponent : public UStaticMeshComponent
+class GALACTICENGAGEMENT_API UGEEngineBaseComponent : public UShipComponentBase
 {
 	GENERATED_BODY()
 

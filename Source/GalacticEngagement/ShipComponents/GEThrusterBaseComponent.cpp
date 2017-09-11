@@ -9,8 +9,8 @@
 
 void UGEThrusterBaseComponent::Thrusting(float percentage)
 {
-	if (IsValid(controlledShip))
-		controlledShip->Thrusting(percentage);
+	if (IsValid(ControlledShip))
+		ControlledShip->Thrusting(percentage);
 }
 
 UGEThrusterBaseComponent::UGEThrusterBaseComponent()
@@ -33,7 +33,7 @@ void UGEThrusterBaseComponent::SetControlledShip(AGEBaseShip * ship)
 {
 	check(ship);
 	WorldMoveToLocation = ship->GetActorLocation();
-	controlledShip = ship;
+	ControlledShip = ship;
 }
 
 const FVector UGEThrusterBaseComponent::GetMoveToLocation() const
@@ -43,17 +43,17 @@ const FVector UGEThrusterBaseComponent::GetMoveToLocation() const
 
 void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType)
 {
-	if (controlledShip)
+	if (ControlledShip)
 	{
-		if (IsValid(controlledShip)) // Update Position and rotation if controlledShip is valid
+		if (IsValid(ControlledShip)) // Update Position and rotation if controlledShip is valid
 		{
-			FVector CurrentLocation = controlledShip->GetCurrentLocation();
-			FRotator CurrentRotation = controlledShip->GetCurrentRotation();
+			FVector CurrentLocation = ControlledShip->GetCurrentLocation();
+			FRotator CurrentRotation = ControlledShip->GetCurrentRotation();
 
 			FVector NewLocation = CurrentLocation + (CurrentVelocity * DeltaTime);
 			FHitResult hitResult;
 			FVector actualLocation = NewLocation;
-			if (!controlledShip->SetLocation(NewLocation, true, hitResult))
+			if (!ControlledShip->SetLocation(NewLocation, true, hitResult))
 			{
 				FVector Direction = hitResult.Normal;
 				Direction.Z = 0;
@@ -90,15 +90,15 @@ void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 					CurrentRotation.Yaw += MaxDeltaYaw * FMath::Sign(deltaAngle);
 				}
 
-				controlledShip->SetRotation(CurrentRotation);
+				ControlledShip->SetRotation(CurrentRotation);
 			}
 
-			UpdateMovementRates(controlledShip->GetCurrentForwardVector(), DeltaTime);
+			UpdateMovementRates(ControlledShip->GetCurrentForwardVector(), DeltaTime);
 			UpdateVelocityFromEffectors(actualLocation,DeltaTime);
 		}
 		else
 		{
-			controlledShip = 0;
+			ControlledShip = 0;
 		}
 	}
 }

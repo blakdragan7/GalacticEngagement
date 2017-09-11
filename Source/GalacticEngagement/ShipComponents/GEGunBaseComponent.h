@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/StaticMeshComponent.h"
+#include "ShipComponentBase.h"
 #include "GEGunBaseComponent.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable)
-class GALACTICENGAGEMENT_API UGEGunBaseComponent : public UStaticMeshComponent
+class GALACTICENGAGEMENT_API UGEGunBaseComponent : public UShipComponentBase
 {
 	GENERATED_BODY()
 private:
@@ -22,7 +22,7 @@ private:
 public:
 	UGEGunBaseComponent();
 	
-	virtual void TickComponent(float DeltaTime,enum ELevelTick TickType,FActorComponentTickFunction * ThisTickFunction)override;
+	virtual void TickComponent(float DeltaTime,enum ELevelTick TickType)override;
 
 	virtual bool FireGun(); // Fires gun using component rotaiton and location and direction
 	virtual bool FireGun(FVector Direction); // Fires gun using component rotaiton and location

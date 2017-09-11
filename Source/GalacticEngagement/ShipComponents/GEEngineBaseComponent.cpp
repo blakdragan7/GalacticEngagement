@@ -2,6 +2,5 @@
 
 UGEEngineBaseComponent::UGEEngineBaseComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
 
 }

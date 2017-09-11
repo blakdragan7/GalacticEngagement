@@ -14,13 +14,12 @@ UCLASS(Blueprintable, BlueprintType)
 class GALACTICENGAGEMENT_API UShipComponentBase : public UObject
 {
 	GENERATED_BODY()
-private:
-	class UStaticMesh* ComponentModel;
-	EShipComponentType ComponentType;
-
 protected:
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
-	class AGEBaseShip *controlledShip;
+	class AGEBaseShip *ControlledShip;
+	class UStaticMesh* ComponentModel;
+	EShipComponentType ComponentType;
+	class UComponentMountPoint* MountedLocation;
 
 public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType) {};
@@ -29,4 +28,6 @@ public:
 	FORCEINLINE UStaticMesh* GetModel() { return ComponentModel; }
 
 	FORCEINLINE void SetModel(UStaticMesh* model) { ComponentModel = model; }
+
+	FORCEINLINE bool AssignToMountPoint(class UComponentMountPoint* MountePoint);
 };

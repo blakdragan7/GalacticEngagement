@@ -54,11 +54,6 @@ AGEBaseShip::AGEBaseShip()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
-	EngineClass = UGEEngineBaseComponent::StaticClass();
-	PrimaryWeaponClass = UGEGunBaseComponent::StaticClass();
-	SecondaryWeaponClass = UGEGunBaseComponent::StaticClass();
-	ThrusterClass = UGEThrusterBaseComponent::StaticClass();
-
 	CameraOffsetScale = 2;
 
 	StartingCameraArmLength = 600;
@@ -81,100 +76,12 @@ void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
-	if (!IsValid( Engine))ConstructComponents();
-	Thrusters->SetControlledShip(this);
 	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
-
-	for (auto mount: MountPoints)
-	{
-		switch (mount->type)
-		{
-		case EComponentMountType::CM_MainGun:
-			MainGun->SetWorldTransform(mount->GetComponentTransform());
-			break;
-		}
-	}
 }
 
 void AGEBaseShip::OnConstruction(const FTransform & Transform)
 {
 	CameraBoom->TargetArmLength = StartingCameraArmLength; // The camera follows at this distance behind the character	
-	ConstructComponents();
-}
-
-void AGEBaseShip::ConstructComponents()
-{
-	if (IsValid(Engine))
-	{
-		if (Engine->StaticClass() != EngineClass)
-		{
-			Engine->DestroyComponent();
-			Engine = NewObject<UGEEngineBaseComponent>(this, *EngineClass);
-			Engine->SetupAttachment(ShipBody);
-			Engine->RegisterComponent();
-		}
-	}
-	else
-	{
-		Engine = NewObject<UGEEngineBaseComponent>(this, *EngineClass);
-		Engine->SetupAttachment(ShipBody);
-		Engine->RegisterComponent();
-	}
-
-	if (IsValid(MainGun))
-	{
-		if (MainGun->StaticClass() != PrimaryWeaponClass)
-		{
-			MainGun->DestroyComponent();
-			MainGun = NewObject<UGEGunBaseComponent>(this, *PrimaryWeaponClass);
-			MainGun->SetupAttachment(ShipBody);
-			MainGun->SetWorldRotation(FrontFacingArrow->GetComponentRotation());
-			MainGun->RegisterComponent();
-		}
-	}
-	else
-	{
-		MainGun = NewObject<UGEGunBaseComponent>(this, *PrimaryWeaponClass);
-		MainGun->SetupAttachment(ShipBody);
-		MainGun->SetWorldRotation(FrontFacingArrow->GetComponentRotation());
-		MainGun->RegisterComponent();
-	}
-
-	if (IsValid(SecondaryGun))
-	{
-		if (SecondaryGun->StaticClass() != SecondaryWeaponClass)
-		{
-			SecondaryGun->DestroyComponent();
-			SecondaryGun = NewObject<UGEGunBaseComponent>(this, *SecondaryWeaponClass);
-			SecondaryGun->SetupAttachment(ShipBody);
-			SecondaryGun->SetWorldRotation(FrontFacingArrow->GetComponentRotation());
-			SecondaryGun->RegisterComponent();
-		}
-	}
-	else
-	{
-		SecondaryGun = NewObject<UGEGunBaseComponent>(this, *SecondaryWeaponClass);
-		SecondaryGun->SetupAttachment(ShipBody);
-		SecondaryGun->SetWorldRotation(FrontFacingArrow->GetComponentRotation());
-		SecondaryGun->RegisterComponent();
-	}
-
-	if (IsValid(Thrusters))
-	{
-		if (Thrusters->StaticClass() != ThrusterClass)
-		{
-			Thrusters->DestroyComponent();
-			Thrusters = NewObject<UGEThrusterBaseComponent>(this, *ThrusterClass);
-			Thrusters->SetupAttachment(ShipBody);
-			Thrusters->RegisterComponent();
-		}
-	}
-	else
-	{
-		Thrusters = NewObject<UGEThrusterBaseComponent>(this, *ThrusterClass);
-		Thrusters->SetupAttachment(ShipBody);
-		Thrusters->RegisterComponent();
-	}
 }
 
 // Called every frame
@@ -227,7 +134,7 @@ void AGEBaseShip::UpdateInputs()
 			return;
 		}
 
-		Thrusters->MoveTo(ScreenMoveToPoint);
+		//Thrusters->MoveTo(ScreenMoveToPoint);
 	}
 }
 
@@ -283,7 +190,7 @@ void AGEBaseShip::UpdateCameraPosition()
 void AGEBaseShip::MoveToUp()
 {
 	HasMovementInput = false;
-	Thrusters->StopMoving();
+	//Thrusters->StopMoving();
 }
 
 void AGEBaseShip::MoveToDown()
@@ -362,12 +269,8 @@ void AGEBaseShip::FireSelectedGun()
 	switch (SelectedGun)
 	{
 	case ESelectedGun::SG_Main:
-		if (MainGun->FireGun(ShipBody->GetForwardVector()))
-			GunFired(MainGun, SelectedGun);
 		break;
 	case ESelectedGun::SG_Secondary:
-		if (SecondaryGun->FireGun(ShipBody->GetForwardVector()))
-			GunFired(SecondaryGun, SelectedGun);
 		break;
 	default:
 		break;
@@ -392,12 +295,12 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 void AGEBaseShip::AddVelocityEffector(AActor * effector)
 {
-	Thrusters->AddEffector(effector);
+	//Thrusters->AddEffector(effector);
 }
 
 void AGEBaseShip::removeVelocityEffector(AActor * effector)
 {
-	Thrusters->RemoveEffector(effector);
+	//Thrusters->RemoveEffector(effector);
 }
 
 float AGEBaseShip::GetHealthPercentage()
@@ -407,7 +310,7 @@ float AGEBaseShip::GetHealthPercentage()
 
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
-	Thrusters->MoveTo(Actor->GetActorLocation());
+	//Thrusters->MoveTo(Actor->GetActorLocation());
 }
 
 void AGEBaseShip::InvalidateTarget()
@@ -470,14 +373,14 @@ void AGEBaseShip::SearchForTarget(float radius)
 
 	if (!CurrentlyTargetedShip)
 	{
-		FVector Location = GetActorLocation();
+		/*FVector Location = GetActorLocation();
 		const FVector WorldMoveTo = Thrusters->GetMoveToLocation();
 		if (FVector::DistSquared(Location,WorldMoveTo) <= 10.0)
 		{
 			float x = FMath::RandRange(-400, 400);
 			float y = FMath::RandRange(-400, 400);
 			Thrusters->MoveTo(FVector(x,y,Location.Z));
-		}
+		}*/
 	}
 }
 

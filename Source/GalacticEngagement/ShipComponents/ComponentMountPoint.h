@@ -3,26 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ArrowComponent.h"
+#include "ShipComponentTypes.h"
+#include "Components/StaticMeshComponent.h"
 #include "ComponentMountPoint.generated.h"
 
-UENUM(BlueprintType)
-enum class EComponentMountType : uint8
-{
-	CM_Engine 			UMETA(DisplayName = "Engine"),
-	CM_Thruster 		UMETA(DisplayName = "Thruster"),
-	CM_MainGun 			UMETA(DisplayName = "Main Gun"),
-	CM_SecondaryGun 	UMETA(DisplayName = "Secondary Gun")
-};
-
 UCLASS( ClassGroup=(ShipComponents), meta=(BlueprintSpawnableComponent) )
-class GALACTICENGAGEMENT_API UComponentMountPoint : public UArrowComponent
+class GALACTICENGAGEMENT_API UComponentMountPoint : public UStaticMeshComponent
 {
 	GENERATED_BODY()
 
 private:
 	UPROPERTY(Category = Debug, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
+	UPROPERTY(Category = Debug, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class UShipComponentBase* AssignedComponent;
 
 public:	
 	// Sets default values for this component's properties
@@ -37,5 +31,10 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(Category = Type, EditAnywhere, BlueprintReadWrite)
-	EComponentMountType type;
+	EShipComponentType AcceptedComponentType;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool SetComponent(class UShipComponentBase* inComponent);
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool RemoveComponent(class UShipComponentBase* outOldComponent=0);
 };

@@ -26,14 +26,6 @@ private:
 	class USpringArmComponent * CameraBoom;
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* ShipBody;
-	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UGEEngineBaseComponent* Engine;
-	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UGEThrusterBaseComponent * Thrusters;
-	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UGEGunBaseComponent* MainGun;
-	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UGEGunBaseComponent* SecondaryGun;
 	UPROPERTY(Category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ShipWidget;
 	// debug components
@@ -70,7 +62,6 @@ public:
 	AGEBaseShip();
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void ConstructComponents();
 
 public:
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
@@ -80,23 +71,11 @@ public:
 
 	UPROPERTY(Category = "Ship UI", EditAnywhere, BlueprintReadWrite)
 	int32 StartingCameraArmLength;
-	
-	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<class UGEGunBaseComponent> PrimaryWeaponClass;
-	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<class UGEGunBaseComponent> SecondaryWeaponClass;
-	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<class UGEThrusterBaseComponent> ThrusterClass;
-	UPROPERTY(Category = "Ship Structure", EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<class UGEEngineBaseComponent> EngineClass;
 
 	UPROPERTY(Category = "Controls",EditAnywhere, BlueprintReadWrite)
 	ESelectedGun SelectedGun;
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UUserWidget> ShipHUDWidget;
-
-	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
-	TArray<class UComponentMountPoint*> MountPoints;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

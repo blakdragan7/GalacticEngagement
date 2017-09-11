@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShipComponentBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "GEThrusterBaseComponent.generated.h"
 
@@ -10,7 +11,7 @@
  * 
  */
 UCLASS(Blueprintable)
-class GALACTICENGAGEMENT_API UGEThrusterBaseComponent : public UStaticMeshComponent
+class GALACTICENGAGEMENT_API UGEThrusterBaseComponent : public UShipComponentBase
 {
 	GENERATED_BODY()
 private:
@@ -29,8 +30,6 @@ private:
 	void Thrusting(float percentage);
 
 protected:
-	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
-		class AGEBaseShip *controlledShip;
 	UPROPERTY(Category = "Ship Movement", VisibleAnywhere, BlueprintReadOnly)
 		bool IsAccelerating;
 	UPROPERTY(Category = "Ship Movement", EditAnywhere, BlueprintReadWrite)
@@ -53,7 +52,7 @@ public:
 
 	const FVector GetMoveToLocation()const;
 
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType)override;
 
 	virtual void UpdateVelocityFromEffectors(FVector CurrentPosition, float DeltaTime);
 	virtual void UpdateMovementRates(FVector Direction, float DeltaTime);

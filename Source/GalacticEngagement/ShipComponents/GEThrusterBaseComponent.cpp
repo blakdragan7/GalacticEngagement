@@ -15,8 +15,6 @@ void UGEThrusterBaseComponent::Thrusting(float percentage)
 
 UGEThrusterBaseComponent::UGEThrusterBaseComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-
 	IsAccelerating = false;
 	NeedsScreenDirectionUpdate = false;
 	NeedsWorldDirectionUpdate = false;
@@ -43,7 +41,7 @@ const FVector UGEThrusterBaseComponent::GetMoveToLocation() const
 	return WorldMoveToLocation;
 }
 
-void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
+void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType)
 {
 	if (controlledShip)
 	{

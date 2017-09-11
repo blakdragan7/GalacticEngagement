@@ -51,6 +51,14 @@ AGEBaseShip::AGEBaseShip()
 	FrontFacingArrow->SetupAttachment(ShipBody);
 	FrontFacingArrow->bHiddenInGame = false;
 
+	ThrusterMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Thruster"));
+	ThrusterMount->SetupAttachment(ShipBody);
+	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
+
+	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
+	EngineMount->SetupAttachment(ShipBody);
+	EngineMount->AcceptedComponentType = EShipComponentType::SC_Engine;
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
@@ -133,7 +141,7 @@ void AGEBaseShip::UpdateInputs()
 			UE_LOG(LogTemp, Warning, TEXT("Could Not Get PlayerController !"));
 			return;
 		}
-
+		if(ThrusterMount->HasBeenAssigned())
 		ThrusterMount->ThrusterComponent->MoveTo(ScreenMoveToPoint);
 	}
 }
@@ -189,6 +197,7 @@ void AGEBaseShip::UpdateCameraPosition()
 }
 void AGEBaseShip::MoveToUp()
 {
+	if (ThrusterMount->HasBeenAssigned())return;
 	HasMovementInput = false;
 	ThrusterMount->ThrusterComponent->StopMoving();
 }
@@ -295,11 +304,13 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 void AGEBaseShip::AddVelocityEffector(AActor * effector)
 {
+	if (ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->AddEffector(effector);
 }
 
 void AGEBaseShip::removeVelocityEffector(AActor * effector)
 {
+	if (ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->RemoveEffector(effector);
 }
 
@@ -310,6 +321,7 @@ float AGEBaseShip::GetHealthPercentage()
 
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
+	if (ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->MoveTo(Actor->GetActorLocation());
 }
 
@@ -371,7 +383,7 @@ void AGEBaseShip::SearchForTarget(float radius)
 		}
 	}
 
-	if (!CurrentlyTargetedShip)
+	if (!CurrentlyTargetedShip && ThrusterMount->HasBeenAssigned())
 	{
 		FVector Location = GetActorLocation();
 		const FVector WorldMoveTo = ThrusterMount->ThrusterComponent->GetMoveToLocation();

@@ -12,10 +12,11 @@ class GALACTICENGAGEMENT_API UComponentMountPoint : public UStaticMeshComponent
 {
 	GENERATED_BODY()
 
-private:
+protected:
 	UPROPERTY(Category = Debug, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
-	UPROPERTY(Category = Debug, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	
+	UPROPERTY(Category = Component, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UShipComponentBase* AssignedComponent;
 
 public:	
@@ -35,6 +36,9 @@ public:
 
 	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
 	bool ShouldTick;
+
+	UFUNCTION(BlueprintCallable, Category = "Validity")
+	FORCEINLINE bool HasBeenAssigned() {return AssignedComponent != 0 && StaticMesh != 0;}
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool SizeTo(const FVector & inExtents);

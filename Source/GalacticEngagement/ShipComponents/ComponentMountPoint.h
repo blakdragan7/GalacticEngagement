@@ -37,9 +37,22 @@ public:
 	bool ShouldTick;
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool SizeTo(const FVector & inExtents);
+	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void SetEnabled(bool enabled);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool SetComponent(class UShipComponentBase* inComponent);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool RemoveComponent(class UShipComponentBase* outOldComponent);
+
+	/*Pre Casts*/
+	/*AssignedComponent Pre casted to EngineComponent*/
+	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	class UGEEngineBaseComponent* EngineComponent;
+	/*AssignedComponent Pre casted to GunComponent*/
+	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	class UGEGunBaseComponent*  GunComponent;
+	/*AssignedComponent Pre casted to ThrusterComponent*/
+	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	class UGEThrusterBaseComponent*  ThrusterComponent;
 };

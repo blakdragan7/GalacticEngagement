@@ -134,7 +134,7 @@ void AGEBaseShip::UpdateInputs()
 			return;
 		}
 
-		//Thrusters->MoveTo(ScreenMoveToPoint);
+		ThrusterMount->ThrusterComponent->MoveTo(ScreenMoveToPoint);
 	}
 }
 
@@ -190,7 +190,7 @@ void AGEBaseShip::UpdateCameraPosition()
 void AGEBaseShip::MoveToUp()
 {
 	HasMovementInput = false;
-	//Thrusters->StopMoving();
+	ThrusterMount->ThrusterComponent->StopMoving();
 }
 
 void AGEBaseShip::MoveToDown()
@@ -295,12 +295,12 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 void AGEBaseShip::AddVelocityEffector(AActor * effector)
 {
-	//Thrusters->AddEffector(effector);
+	ThrusterMount->ThrusterComponent->AddEffector(effector);
 }
 
 void AGEBaseShip::removeVelocityEffector(AActor * effector)
 {
-	//Thrusters->RemoveEffector(effector);
+	ThrusterMount->ThrusterComponent->RemoveEffector(effector);
 }
 
 float AGEBaseShip::GetHealthPercentage()
@@ -310,7 +310,7 @@ float AGEBaseShip::GetHealthPercentage()
 
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
-	//Thrusters->MoveTo(Actor->GetActorLocation());
+	ThrusterMount->ThrusterComponent->MoveTo(Actor->GetActorLocation());
 }
 
 void AGEBaseShip::InvalidateTarget()
@@ -373,14 +373,14 @@ void AGEBaseShip::SearchForTarget(float radius)
 
 	if (!CurrentlyTargetedShip)
 	{
-		/*FVector Location = GetActorLocation();
-		const FVector WorldMoveTo = Thrusters->GetMoveToLocation();
+		FVector Location = GetActorLocation();
+		const FVector WorldMoveTo = ThrusterMount->ThrusterComponent->GetMoveToLocation();
 		if (FVector::DistSquared(Location,WorldMoveTo) <= 10.0)
 		{
 			float x = FMath::RandRange(-400, 400);
 			float y = FMath::RandRange(-400, 400);
-			Thrusters->MoveTo(FVector(x,y,Location.Z));
-		}*/
+			ThrusterMount->ThrusterComponent->MoveTo(FVector(x,y,Location.Z));
+		}
 	}
 }
 

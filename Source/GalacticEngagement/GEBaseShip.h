@@ -77,6 +77,11 @@ public:
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class UUserWidget> ShipHUDWidget;
 
+	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
+	class UComponentMountPoint* EngineMount;
+	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
+	class UComponentMountPoint* ThrusterMount;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	/** Damage Interface */

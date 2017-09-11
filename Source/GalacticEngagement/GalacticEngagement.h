@@ -3,3 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+//General Log
+DECLARE_LOG_CATEGORY_EXTERN(GELog, Log, All);

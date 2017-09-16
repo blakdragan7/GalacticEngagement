@@ -13,6 +13,7 @@ private:
 	float ActorDensity;
 	float FarPlane; // Currently just z plane
 	float WorldRadiusToScreenEdgeSqr;
+	float WorldRadiusToScreenEdge;
 	FVector PlaneNormal;
 	FVector Origin;
 
@@ -53,6 +54,7 @@ public:
 	FORCEINLINE void SetRadiusToEdggeSqr(float radius)
 	{
 		WorldRadiusToScreenEdgeSqr = radius;
+		WorldRadiusToScreenEdge = FMath::Sqrt(radius);
 	}
 
 	FORCEINLINE void SetPlaneNormal(FVector normal)
@@ -94,5 +96,8 @@ public:
 	{
 		return Origin;
 	}
-
+	FORCEINLINE int32 GetNumActors()
+	{
+		return ActorsInBackground.Num();
+	}
 };

@@ -15,6 +15,7 @@ AGEAmmoBase::AGEAmmoBase()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	bWasLaunched = false;
+	SetReplicates(true);
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AmmoRoot"));
 	AmmoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AmmoMesh"));

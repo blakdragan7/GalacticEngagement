@@ -39,6 +39,10 @@ private:
 	TArray<AGEBaseShip*> AllCurrentlyTargetingMe;
 	bool HasMovementInput;
 
+	float CurrentCameraDistance;
+
+	bool HasCameraDistance;
+
 	class GETravelManagerBase* TravelManager;
 
 protected:
@@ -63,12 +67,17 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	void SetToMaxCaemraDistance(); // Exposed for controller to get max distance
+	void ResetToNormalCameraDistance(); // Resets cmaera from max distance, if called without a previous call to SetToMaxCaemraDistance sets the camera to smallest distance
+
 public:
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 CurrentHealth;
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
 
+	UPROPERTY(Category = "Ship UI", EditAnywhere, BlueprintReadWrite)
+	int32 MaxCameraArmLength;
 	UPROPERTY(Category = "Ship UI", EditAnywhere, BlueprintReadWrite)
 	int32 StartingCameraArmLength;
 
@@ -81,6 +90,11 @@ public:
 	class UComponentMountPoint* EngineMount;
 	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
 	class UComponentMountPoint* ThrusterMount;
+
+	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
+	TArray<class UComponentMountPoint*> MainGunComponents;
+	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
+	TArray<class UComponentMountPoint*> SecondaryGunComponents;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

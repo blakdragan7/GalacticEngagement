@@ -38,8 +38,10 @@ public:
 	bool ShouldTick;
 
 	UFUNCTION(BlueprintCallable, Category = "Validity")
-	FORCEINLINE bool HasBeenAssigned() {return AssignedComponent != 0 && StaticMesh != 0;}
+	FORCEINLINE bool HasBeenAssigned() {return AssignedComponent != 0;}
 
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool AssignShipComponent(TSubclassOf<class UShipComponentBase> ComponentClass);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool SizeTo(const FVector & inExtents);
 	UFUNCTION(BlueprintCallable, Category = "Movement")

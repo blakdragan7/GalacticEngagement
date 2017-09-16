@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GEMeleePlayerController.h"
+#include "GEBaseShip.h"
 #include "Runtime/Engine/Public/ConvexVolume.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Camera/CameraActor.h"
@@ -23,11 +24,13 @@ void AGEMeleePlayerController::Tick(float DeltaTime)
 
 void AGEMeleePlayerController::BeginPlay()
 {
-	if (IsLocalController())
+	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetControlledPawn()))
 	{
-		for (FBackgroundPlane &plane : BackgroundPlanes)
+		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
 		{
-			plane.SpawnAllActorsForBackground(GetWorld());
+			FBackgroundPlane* plane = BackgroundPlanes[i];
+			plane->SetRadiusToEdggeSqr(FMath::Square<int32>(ship->MaxCameraArmLength*1.2));
+			plane->SpawnAllActorsForBackground(GetWorld());
 		}
 	}
 }
@@ -36,8 +39,6 @@ void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
 {
 	if (IsLocalController())
 	{
-		BackgroundPlanes.Empty();
-
 		int32 actorclasssize = BackgroundClasses.Num();
 		if (actorclasssize != BackgroundLayerDensity.Num())
 		{
@@ -54,16 +55,32 @@ void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
 
 		for (int32 i = 0; i < actorclasssize; i++)
 		{
-			FBackgroundPlane plane;
+			FBackgroundPlane *plane = new FBackgroundPlane;
 
-			plane.SetActorClass(BackgroundClasses[i]);
-			plane.SetPlaneNormal(FVector(0, 0, 1));
-			plane.SetActorDensity(BackgroundLayerDensity[i]);
-			plane.SetFarPlane(LayerZPlanes[i]);
+			plane->SetActorClass(BackgroundClasses[i]);
+			plane->SetPlaneNormal(FVector(0, 0, 1));
+			plane->SetActorDensity(BackgroundLayerDensity[i]);
+			plane->SetFarPlane(LayerZPlanes[i]);
 
-			BackgroundPlanes.Add(plane);
+			if (BackgroundPlanes.Num() > i)
+			{
+				delete BackgroundPlanes[i];
+				BackgroundPlanes[i] = plane;
+			}
+			else
+				BackgroundPlanes.Add(plane);
 		}
 	}
+}
+
+void AGEMeleePlayerController::BeginDestroy()
+{
+	Super::BeginDestroy();
+	for (auto plane : BackgroundPlanes)
+	{
+		delete plane;
+	}
+	BackgroundPlanes.Empty();
 }
 
 void AGEMeleePlayerController::UpdatePlanes()
@@ -82,20 +99,16 @@ void AGEMeleePlayerController::UpdatePlanes()
 
 			for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
 			{
-				FBackgroundPlane& plane = BackgroundPlanes[i];
+				FBackgroundPlane* plane = BackgroundPlanes[i];
 
-				float farplane = plane.GetFarPlane();
+				float farplane = plane->GetFarPlane();
 				float linedistance = FMath::Abs(LowerLeft.Z - farplane);
 
-				FVector BottomLeft = FMath::LinePlaneIntersection(LowerLeft, LowerLeft + (LowerLeftDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
 				FVector Origin = FMath::LinePlaneIntersection(Center, Center + (CenterDirection * linedistance), FVector(0, 0, farplane), FVector(0, 0, 1));
 
-				FVector Distance = (Origin - BottomLeft).GetAbs();
+				plane->SetOrigin(Origin);
 
-				plane.SetOrigin(Origin);
-				plane.SetRadiusToEdggeSqr(Distance.SizeSquared2D());
-
-				plane.UpdateActors();
+				plane->UpdateActors();
 			}
 		}
 	}

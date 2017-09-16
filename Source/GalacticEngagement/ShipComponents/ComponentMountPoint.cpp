@@ -15,7 +15,7 @@ UComponentMountPoint::UComponentMountPoint()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	ShouldTick = false;
+	ShouldTick = true;
 	AssignedComponent = 0;
 }
 
@@ -33,6 +33,21 @@ void UComponentMountPoint::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	if (!ShouldTick)return;
 	if (AssignedComponent)AssignedComponent->TickComponent(DeltaTime, TickType);
+}
+
+bool UComponentMountPoint::AssignShipComponent(TSubclassOf<class UShipComponentBase> ComponentClass)
+{
+	if (UShipComponentBase* component = NewObject<UShipComponentBase>(this, ComponentClass))
+	{
+		if (SetComponent(component) == false)
+		{
+			component->ConditionalBeginDestroy();
+			return false;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 bool UComponentMountPoint::SizeTo(const FVector & inExtents)
@@ -63,14 +78,17 @@ bool UComponentMountPoint::SetComponent(UShipComponentBase * inComponent)
 
 	if (inComponent->GetType() == AcceptedComponentType)
 	{
-		AssignedComponent = inComponent;
-		SetStaticMesh(AssignedComponent->GetModel());
+		if (inComponent->AssignToMountPoint(this))
+		{
+			AssignedComponent = inComponent;
+			SetStaticMesh(AssignedComponent->GetModel());
 
-		GunComponent = Cast<UGEGunBaseComponent>(inComponent);
-		EngineComponent = Cast<UGEEngineBaseComponent>(inComponent);
-		ThrusterComponent = Cast<UGEThrusterBaseComponent>(inComponent);
+			GunComponent = Cast<UGEGunBaseComponent>(inComponent);
+			EngineComponent = Cast<UGEEngineBaseComponent>(inComponent);
+			ThrusterComponent = Cast<UGEThrusterBaseComponent>(inComponent);
 
-		return true;
+			return true;
+		}
 	}
 	return false;
 }

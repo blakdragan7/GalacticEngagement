@@ -16,6 +16,7 @@ void UGEThrusterBaseComponent::Thrusting(float percentage)
 UGEThrusterBaseComponent::UGEThrusterBaseComponent()
 {
 	IsAccelerating = false;
+	ComponentType = EShipComponentType::SC_Thruster;
 	NeedsScreenDirectionUpdate = false;
 	NeedsWorldDirectionUpdate = false;
 	HitLastFrame = false;

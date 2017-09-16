@@ -35,7 +35,7 @@ void FBackgroundPlane::UpdateActors()
 		if (distance.SizeSquared() > WorldRadiusToScreenEdgeSqr)
 		{
 			FVector direction = -distance.GetSafeNormal();
-			actor->SetActorLocation(Origin + (direction * FMath::Sqrt(WorldRadiusToScreenEdgeSqr)));
+			actor->SetActorLocation(Origin + (direction * WorldRadiusToScreenEdge));
 		}
 	}
 }
@@ -50,12 +50,18 @@ void FBackgroundPlane::SpawnAllActorsForBackground(UWorld* world)
 		{
 			FTransform transform;
 
-			float X = FMath::RandRange(-3000, 3000);
-			float Y = FMath::RandRange(-3000, 3000);
+			float X = FMath::RandRange(-WorldRadiusToScreenEdge, WorldRadiusToScreenEdge);
+			float Y = FMath::RandRange(-WorldRadiusToScreenEdge, WorldRadiusToScreenEdge);
 
 			transform.SetLocation(FVector(X, Y, FarPlane));
-			AActor * actor = world->SpawnActor(PlaneAcotorClass, &transform);
-			ActorsInBackground.Add(actor);
+			if (AActor * actor = world->SpawnActor(PlaneAcotorClass, &transform))
+			{
+				ActorsInBackground.Add(actor);
+			}
+			else
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Could Not Spawn Actor At Position X: %f, Y: %f, Z: %f") , X,Y,FarPlane);
+			}
 		}
 	}
 }

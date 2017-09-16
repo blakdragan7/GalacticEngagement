@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class GALACTICENGAGEMENT_API UGEThrusterBaseComponent : public UShipComponentBase
 {
 	GENERATED_BODY()

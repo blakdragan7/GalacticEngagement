@@ -25,6 +25,8 @@ AGEBaseShip::AGEBaseShip()
 {
 	AIControllerClass = AGEBaseEnemyAIController::StaticClass();
 
+	SetReplicates(true);
+
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -42,6 +44,7 @@ AGEBaseShip::AGEBaseShip()
 	CameraBoom->SetWorldRotation(FRotator(-90, 0, 0));
 	CameraBoom->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 	CameraBoom->bDoCollisionTest = false;
+	//CameraBoom->CameraLagSpeed = 0;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -64,7 +67,8 @@ AGEBaseShip::AGEBaseShip()
 
 	CameraOffsetScale = 2;
 
-	StartingCameraArmLength = 600;
+	StartingCameraArmLength = 1500;
+	MaxCameraArmLength = 4500;
 
 	AttackAngle = 45.0;
 	AttackDistance = 1000.0;
@@ -73,8 +77,10 @@ AGEBaseShip::AGEBaseShip()
 	CurrentHealth = 0;
 
 	CurrentlyTargetedShip = 0;
+	CurrentCameraDistance = 0;
 
 	HasMovementInput = false;
+	HasCameraDistance = false;
 
 	SelectedGun = ESelectedGun::SG_Main;
 }
@@ -90,6 +96,24 @@ void AGEBaseShip::BeginPlay()
 void AGEBaseShip::OnConstruction(const FTransform & Transform)
 {
 	CameraBoom->TargetArmLength = StartingCameraArmLength; // The camera follows at this distance behind the character	
+}
+
+void AGEBaseShip::SetToMaxCaemraDistance()
+{
+	CurrentCameraDistance = CameraBoom->TargetArmLength;
+	CameraBoom->TargetArmLength = MaxCameraArmLength;
+}
+
+void AGEBaseShip::ResetToNormalCameraDistance()
+{
+	if (HasCameraDistance)
+	{
+		CameraBoom->TargetArmLength = CurrentCameraDistance;
+	}
+	else
+	{
+		CameraBoom->TargetArmLength = StartingCameraArmLength; // The camera follows at this distance behind the character	
+	}
 }
 
 // Called every frame
@@ -183,7 +207,7 @@ void AGEBaseShip::UpdateCameraPosition()
 		{
 			float distance = GetDistanceTo(CurrentlyTargetingMe) * CameraOffsetScale;
 			distance = FMath::Max<float>(distance, StartingCameraArmLength);
-			CameraBoom->TargetArmLength = distance;
+			CameraBoom->TargetArmLength = FMath::Min<float>(distance,MaxCameraArmLength);
 		}
 		else
 		{
@@ -197,7 +221,7 @@ void AGEBaseShip::UpdateCameraPosition()
 }
 void AGEBaseShip::MoveToUp()
 {
-	if (ThrusterMount->HasBeenAssigned())return;
+	if (!ThrusterMount->HasBeenAssigned())return;
 	HasMovementInput = false;
 	ThrusterMount->ThrusterComponent->StopMoving();
 }
@@ -278,8 +302,22 @@ void AGEBaseShip::FireSelectedGun()
 	switch (SelectedGun)
 	{
 	case ESelectedGun::SG_Main:
+		for (auto gun : MainGunComponents)
+		{
+			if (gun->HasBeenAssigned())
+			{
+				gun->GunComponent->FireGun();
+			}
+		}
 		break;
 	case ESelectedGun::SG_Secondary:
+		for (auto gun : SecondaryGunComponents)
+		{
+			if (gun->HasBeenAssigned())
+			{
+				gun->GunComponent->FireGun();
+			}
+		}
 		break;
 	default:
 		break;
@@ -304,13 +342,13 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 void AGEBaseShip::AddVelocityEffector(AActor * effector)
 {
-	if (ThrusterMount->HasBeenAssigned())return;
+	if (!ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->AddEffector(effector);
 }
 
 void AGEBaseShip::removeVelocityEffector(AActor * effector)
 {
-	if (ThrusterMount->HasBeenAssigned())return;
+	if (!ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->RemoveEffector(effector);
 }
 
@@ -321,7 +359,7 @@ float AGEBaseShip::GetHealthPercentage()
 
 void AGEBaseShip::MoveTo(AActor * Actor)
 {
-	if (ThrusterMount->HasBeenAssigned())return;
+	if (!ThrusterMount->HasBeenAssigned())return;
 	ThrusterMount->ThrusterComponent->MoveTo(Actor->GetActorLocation());
 }
 

@@ -10,6 +10,7 @@
 UGEGunBaseComponent::UGEGunBaseComponent()
 {
 	AmmoType = AGEAmmoBase::StaticClass();
+	ComponentType = EShipComponentType::SC_MainGun;
 	ShotCountDown = 0.0f;
 	ShotsPerSecond = 3.0f;
 	ToggleShoot = false;
@@ -43,8 +44,8 @@ bool UGEGunBaseComponent::FireGun()
 		const FVector Location = MountedLocation->GetComponentLocation();
 		const FRotator Rotation = MountedLocation->GetComponentRotation();
 		const FVector Direction = MountedLocation->GetForwardVector();
-		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
-		ammo->Launch(MountedLocation->GetOwner(), Direction*100.0);
+		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(MountedLocation->GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
+		ammo->Launch(MountedLocation->GetOwner(), Direction);
 		ToggleShoot = true;
 		return true;
 	}
@@ -60,7 +61,7 @@ bool UGEGunBaseComponent::FireGun(FVector Direction)
 		FTransform transform;
 		const FVector Location = MountedLocation->GetComponentLocation();
 		const FRotator Rotation = MountedLocation->GetComponentRotation();
-		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
+		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(MountedLocation->GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
 		if(ammo)ammo->Launch(MountedLocation->GetOwner(),Direction);
 		ToggleShoot = true;
 		return true;
@@ -74,8 +75,8 @@ bool UGEGunBaseComponent::FireGun(FVector Direction,FVector & Location, FRotator
 	{
 		FActorSpawnParameters spawnParams;
 		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
-		ammo->Launch(MountedLocation->GetOwner(), Direction*2000.0);
+		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(MountedLocation->GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
+		ammo->Launch(MountedLocation->GetOwner(), Direction);
 		ToggleShoot = true;
 		return true;
 	}

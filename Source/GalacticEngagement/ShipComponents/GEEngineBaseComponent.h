@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS(Blueprintable, BlueprintType)
 class GALACTICENGAGEMENT_API UGEEngineBaseComponent : public UShipComponentBase
 {
 	GENERATED_BODY()

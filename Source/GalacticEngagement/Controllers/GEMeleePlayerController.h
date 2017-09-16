@@ -15,7 +15,7 @@ class GALACTICENGAGEMENT_API AGEMeleePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 private:
-	TArray<FBackgroundPlane> BackgroundPlanes;
+	TArray<FBackgroundPlane*> BackgroundPlanes;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Environment)
@@ -33,5 +33,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void BeginPlay()override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-
+	virtual void BeginDestroy();
 };

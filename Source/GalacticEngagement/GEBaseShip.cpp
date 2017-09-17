@@ -352,6 +352,23 @@ void AGEBaseShip::removeVelocityEffector(AActor * effector)
 	ThrusterMount->ThrusterComponent->RemoveEffector(effector);
 }
 
+void AGEBaseShip::AssignComponent(TSubclassOf<UShipComponentBase> component, EShipComponentType type, FVector2D inScreenPosition)
+{
+	switch (type)
+	{
+	case EShipComponentType::SC_Engine:
+		EngineMount->AssignShipComponent(component);
+		break;
+	case EShipComponentType::SC_Thruster:
+		ThrusterMount->AssignShipComponent(component);
+		break;
+	case EShipComponentType::SC_MainGun:
+		break;
+	case EShipComponentType::SC_SecondaryGun:
+		break;
+	}
+}
+
 float AGEBaseShip::GetHealthPercentage()
 {
 	return (float)CurrentHealth / (float)MaxHealth;

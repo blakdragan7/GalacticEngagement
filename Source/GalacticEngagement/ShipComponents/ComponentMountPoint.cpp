@@ -8,6 +8,7 @@
 #include "GEGunBaseComponent.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 
 // Sets default values for this component's properties
 UComponentMountPoint::UComponentMountPoint()
@@ -17,6 +18,10 @@ UComponentMountPoint::UComponentMountPoint()
 	PrimaryComponentTick.bCanEverTick = true;
 	ShouldTick = true;
 	AssignedComponent = 0;
+	index = -1;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
+	if (StaticMeshCube.Object)SetStaticMesh(StaticMeshCube.Object);
 }
 
 

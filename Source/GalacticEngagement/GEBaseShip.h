@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "ShipComponents/ShipComponentTypes.h"
 #include "Interfaces/GEDamageInterface.h"
 #include "GEBaseShip.generated.h"
 
-UENUM(BlueprintType)		//"BlueprintType" is essential to include
+UENUM(Blueprintable, BlueprintType)		//"BlueprintType" is essential to include
 enum class ESelectedGun : uint8
 {
 	SG_Main 			UMETA(DisplayName = "Main Gun"),
@@ -132,6 +133,8 @@ public:
 	void AddVelocityEffector(AActor* effector);
 	UFUNCTION(BlueprintCallable, Category = "Control")
 	void removeVelocityEffector(AActor* effector);
+	UFUNCTION(BlueprintCallable, Category = "Ship Config")
+	void AssignComponent(TSubclassOf<class UShipComponentBase> component,EShipComponentType type,FVector2D inScreenPosition);
 	/*
 	* Called Every Frame, percentage is the current percent the thruster is runnin compared to max or (currentspeed / maxspeed)
 	* This is meant for doing effects such as showing a flame behind the ship etc.. to show that the ship is moving

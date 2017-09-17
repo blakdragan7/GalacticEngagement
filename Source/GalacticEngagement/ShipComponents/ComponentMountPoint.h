@@ -40,6 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Validity")
 	FORCEINLINE bool HasBeenAssigned() {return AssignedComponent != 0;}
 
+	UFUNCTION(BlueprintCallable, Category = "Component")
+	FORCEINLINE class UShipComponentBase* GetComponentBase() { return AssignedComponent; }
+
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool AssignShipComponent(TSubclassOf<class UShipComponentBase> ComponentClass);
 	UFUNCTION(BlueprintCallable, Category = "Movement")
@@ -51,14 +54,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool RemoveComponent(class UShipComponentBase* outOldComponent);
 
+	/* Used for saving and loading, Must be unique per ship, i.e. two ships with the 
+	* same index is fine but more then one component on the same ship with same index is not fine.*/
+	UPROPERTY(Category = Saving, EditAnywhere, BlueprintReadWrite)
+	int32 index;
+
 	/*Pre Casts*/
 	/*AssignedComponent Pre casted to EngineComponent*/
-	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = PreCast, EditAnywhere, BlueprintReadWrite)
 	class UGEEngineBaseComponent* EngineComponent;
 	/*AssignedComponent Pre casted to GunComponent*/
-	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = PreCast, EditAnywhere, BlueprintReadWrite)
 	class UGEGunBaseComponent*  GunComponent;
 	/*AssignedComponent Pre casted to ThrusterComponent*/
-	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = PreCast, EditAnywhere, BlueprintReadWrite)
 	class UGEThrusterBaseComponent*  ThrusterComponent;
 };

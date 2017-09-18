@@ -57,10 +57,12 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Thruster"));
 	ThrusterMount->SetupAttachment(ShipBody);
 	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
+	ThrusterMount->index = 1;
 
 	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
 	EngineMount->SetupAttachment(ShipBody);
 	EngineMount->AcceptedComponentType = EShipComponentType::SC_Engine;
+	EngineMount->index = 0;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);

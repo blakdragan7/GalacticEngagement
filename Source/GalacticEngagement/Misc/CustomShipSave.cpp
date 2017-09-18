@@ -7,6 +7,7 @@
 #include "ShipComponents/GEEngineBaseComponent.h"
 #include "ShipComponents/GEThrusterBaseComponent.h"
 #include "ShipComponents/ComponentMountPoint.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 void UCustomShipSave::PopulateFromShip(class AGEBaseShip* ship)
 {
@@ -41,24 +42,20 @@ void UCustomShipSave::PopulateFromShip(class AGEBaseShip* ship)
 			SecondayGunClasses.Add(strComp);
 		}
 	}
+
+	ShipClass = ship->GetClass();
 }
 
 void UCustomShipSave::PopulateShip(AGEBaseShip * ship)
 {
-	if (EngineClass.componentClass && EngineClass.index != -1)
+	if (EngineClass.componentClass)
 	{
-		if (ship->EngineMount->index == EngineClass.index)
-		{
-			ship->EngineMount->AssignShipComponent(EngineClass.componentClass);
-		}
+		ship->EngineMount->AssignShipComponent(EngineClass.componentClass);
 	}
 
-	if (ThrusterClass.componentClass && ThrusterClass.index != -1)
+	if (ThrusterClass.componentClass)
 	{
-		if (ship->ThrusterMount->index == ThrusterClass.index)
-		{
-			ship->ThrusterMount->AssignShipComponent(ThrusterClass.componentClass);
-		}
+		ship->ThrusterMount->AssignShipComponent(ThrusterClass.componentClass);
 	}
 
 	for (FComponentSaveStruct strComp : PrimaryGunClasses)

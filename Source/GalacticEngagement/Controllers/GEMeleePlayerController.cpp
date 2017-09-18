@@ -14,6 +14,7 @@
 AGEMeleePlayerController::AGEMeleePlayerController()
 {
 	bShowMouseCursor = true;
+	BeganStarField = false;
 }
 
 void AGEMeleePlayerController::Tick(float DeltaTime)
@@ -24,15 +25,6 @@ void AGEMeleePlayerController::Tick(float DeltaTime)
 
 void AGEMeleePlayerController::BeginPlay()
 {
-	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetControlledPawn()))
-	{
-		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
-		{
-			FBackgroundPlane* plane = BackgroundPlanes[i];
-			plane->SetRadiusToEdggeSqr(FMath::Square<int32>(ship->MaxCameraArmLength*1.2));
-			plane->SpawnAllActorsForBackground(GetWorld());
-		}
-	}
 }
 
 void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
@@ -83,9 +75,24 @@ void AGEMeleePlayerController::BeginDestroy()
 	BackgroundPlanes.Empty();
 }
 
+void AGEMeleePlayerController::BeginStarField()
+{
+	BeganStarField = true;
+
+	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetControlledPawn()))
+	{
+		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
+		{
+			FBackgroundPlane* plane = BackgroundPlanes[i];
+			plane->SetRadiusToEdggeSqr(FMath::Square<int32>(ship->MaxCameraArmLength*1.2));
+			plane->SpawnAllActorsForBackground(GetWorld());
+		}
+	}
+}
+
 void AGEMeleePlayerController::UpdatePlanes()
 {
-	if (IsLocalController())
+	if (IsLocalController() && BeganStarField)
 	{
 		if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
 		{

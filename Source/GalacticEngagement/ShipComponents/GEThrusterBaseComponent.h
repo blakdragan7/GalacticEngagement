@@ -52,7 +52,7 @@ public:
 
 	const FVector GetMoveToLocation()const;
 
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType)override;
+	virtual void TickComponent(float DeltaTime)override;
 
 	virtual void UpdateVelocityFromEffectors(FVector CurrentPosition, float DeltaTime);
 	virtual void UpdateMovementRates(FVector Direction, float DeltaTime);

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Math/BackgroundPlane.h"
 #include "GameFramework/PlayerController.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "GEMeleePlayerController.generated.h"
 
 /**

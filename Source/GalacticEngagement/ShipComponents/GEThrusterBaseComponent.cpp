@@ -6,6 +6,7 @@
 #include "Math/GEGameStatistics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "Engine.h"
 
 void UGEThrusterBaseComponent::Thrusting(float percentage)
 {
@@ -42,7 +43,7 @@ const FVector UGEThrusterBaseComponent::GetMoveToLocation() const
 	return WorldMoveToLocation;
 }
 
-void UGEThrusterBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType)
+void UGEThrusterBaseComponent::TickComponent(float DeltaTime)
 {
 	if (ControlledShip)
 	{
@@ -149,16 +150,16 @@ void UGEThrusterBaseComponent::StopMoving()
 	IsAccelerating = false;
 }
 
-void UGEThrusterBaseComponent::MoveTo(FVector2D ScreenMoveToLocation)
+void UGEThrusterBaseComponent::MoveTo(FVector2D screenMoveToLocation)
 {
-	this->ScreenMoveToLocation = ScreenMoveToLocation;
+	this->ScreenMoveToLocation = screenMoveToLocation;
 	IsAccelerating = true;
 	NeedsScreenDirectionUpdate = true;
 }
 
-void UGEThrusterBaseComponent::MoveTo(FVector WorldMoveToLocation)
+void UGEThrusterBaseComponent::MoveTo(FVector worldMoveToLocation)
 {
-	this->WorldMoveToLocation = WorldMoveToLocation;
+	this->WorldMoveToLocation = worldMoveToLocation;
 	IsAccelerating = true;
 	NeedsWorldDirectionUpdate = true;
 }

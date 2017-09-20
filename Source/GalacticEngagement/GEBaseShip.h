@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "ShipComponents/ShipComponentTypes.h"
 #include "Interfaces/GEDamageInterface.h"
 #include "GEBaseShip.generated.h"

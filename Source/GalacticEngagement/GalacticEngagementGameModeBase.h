@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "GalacticEngagementGameModeBase.generated.h"
 
 /**

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "ShipComponents/ShipComponentBase.h"
 #include "CustomShipSave.generated.h"
 

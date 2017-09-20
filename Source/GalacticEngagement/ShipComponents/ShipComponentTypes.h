@@ -1,6 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
-
+#include "ShipComponentTypes.generated.h"
 UENUM(BlueprintType)
 enum class EShipComponentType : uint8
 {

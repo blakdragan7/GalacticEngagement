@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Runtime/CoreUObject/Public/UObject/Interface.h"
 #include "GEDamageInterface.generated.h"
 
 // This class does not need to be modified.

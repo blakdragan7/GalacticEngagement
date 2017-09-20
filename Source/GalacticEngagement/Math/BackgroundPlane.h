@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 /**
  *  Plane for managing Background Actors
  */

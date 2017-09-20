@@ -6,6 +6,8 @@
 #include "GEEngineBaseComponent.h"
 #include "GEThrusterBaseComponent.h"
 #include "GEGunBaseComponent.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
@@ -37,7 +39,7 @@ void UComponentMountPoint::BeginPlay()
 void UComponentMountPoint::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
 {
 	if (!ShouldTick)return;
-	if (AssignedComponent)AssignedComponent->TickComponent(DeltaTime, TickType);
+	if (AssignedComponent)AssignedComponent->TickComponent(DeltaTime);
 }
 
 bool UComponentMountPoint::AssignShipComponent(TSubclassOf<class UShipComponentBase> ComponentClass)
@@ -57,7 +59,7 @@ bool UComponentMountPoint::AssignShipComponent(TSubclassOf<class UShipComponentB
 
 bool UComponentMountPoint::SizeTo(const FVector & inExtents)
 {
-	if (AssignedComponent == 0 || StaticMesh == 0)
+	if (AssignedComponent == 0 || GetStaticMesh() == 0)
 	{
 		UE_LOG(GELog,Warning,TEXT("UComponentMountPoint: Can not Size Mount Point without Assigned Component with a static mesh !"));
 		return false;

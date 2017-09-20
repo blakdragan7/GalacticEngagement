@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ShipComponentTypes.h"
 #include "Components/StaticMeshComponent.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "ComponentMountPoint.generated.h"
 
 UCLASS( ClassGroup=(ShipComponents), meta=(BlueprintSpawnableComponent) )

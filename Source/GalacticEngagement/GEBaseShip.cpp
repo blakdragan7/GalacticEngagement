@@ -10,6 +10,8 @@
 #include "Math/GEGameStatistics.h"
 #include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
@@ -386,7 +388,7 @@ void AGEBaseShip::InvalidateTarget()
 {
 	if (CurrentlyTargetedShip)
 	{
-		CurrentlyTargetedShip = false;
+		CurrentlyTargetedShip = 0;
 	}
 }
 

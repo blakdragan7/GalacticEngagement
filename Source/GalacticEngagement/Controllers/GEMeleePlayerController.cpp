@@ -10,6 +10,7 @@
 #include "Runtime/Engine/Public/SceneView.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
 #include "Math/BackgroundPlane.h"
+#include "Engine.h"
 
 AGEMeleePlayerController::AGEMeleePlayerController()
 {
@@ -79,7 +80,7 @@ void AGEMeleePlayerController::BeginStarField()
 {
 	BeganStarField = true;
 
-	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetControlledPawn()))
+	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetPawn()))
 	{
 		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
 		{

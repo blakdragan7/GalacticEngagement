@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ShipComponentBase.h"
+#include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "GEGunBaseComponent.generated.h"
 
 /**
@@ -22,7 +23,7 @@ private:
 public:
 	UGEGunBaseComponent();
 	
-	virtual void TickComponent(float DeltaTime,enum ELevelTick TickType)override;
+	virtual void TickComponent(float DeltaTime)override;
 
 	virtual bool FireGun(); // Fires gun using component rotaiton and location and direction
 	virtual bool FireGun(FVector Direction); // Fires gun using component rotaiton and location

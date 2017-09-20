@@ -22,12 +22,12 @@ protected:
 	class UComponentMountPoint* MountedLocation;
 
 public:
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType) {};
+	virtual void TickComponent(float DeltaTime) {};
 
 	FORCEINLINE EShipComponentType GetType() { return ComponentType; }
 	FORCEINLINE UStaticMesh* GetModel() { return ComponentModel; }
 
 	FORCEINLINE void SetModel(UStaticMesh* model) { ComponentModel = model; }
 
-	FORCEINLINE bool AssignToMountPoint(class UComponentMountPoint* MountePoint);
+	bool AssignToMountPoint(class UComponentMountPoint* MountePoint);
 };

@@ -3,6 +3,7 @@
 #include "GEGunBaseComponent.h"
 #include "ComponentMountPoint.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "GEAmmoBase.h"
@@ -19,7 +20,7 @@ UGEGunBaseComponent::UGEGunBaseComponent()
 	if (StaticMeshCube.Object)ComponentModel = StaticMeshCube.Object;
 }
 
-void UGEGunBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType)
+void UGEGunBaseComponent::TickComponent(float DeltaTime)
 {
 	if (ToggleShoot || ShotCountDown > 0) // Update ShotCountDown
 	{

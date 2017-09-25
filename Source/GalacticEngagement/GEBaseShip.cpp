@@ -344,6 +344,58 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 	});
 }
 
+UComponentMountPoint * AGEBaseShip::ClosestMountToPoint(FVector2D screen_point, float range)
+{
+	if (APlayerController* controller = Cast<APlayerController>(GetController()))
+	{
+		float rangeSqr = (range*range);
+
+		FVector2D ScreenLocation;
+		FVector WorldLocation = EngineMount->GetComponentLocation();
+		if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
+		{
+			if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+			{
+				return EngineMount;
+			}
+		}
+
+		WorldLocation = ThrusterMount->GetComponentLocation();
+		if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
+		{
+			if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+			{
+				return ThrusterMount;
+			}
+		}
+
+		for (auto mount : MainGunComponents)
+		{
+			WorldLocation = mount->GetComponentLocation();
+			if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
+			{
+				if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+				{
+					return mount;
+				}
+			}
+		}
+
+		for (auto mount : SecondaryGunComponents)
+		{
+			WorldLocation = mount->GetComponentLocation();
+			if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
+			{
+				if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+				{
+					return mount;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+
 void AGEBaseShip::AddVelocityEffector(AActor * effector)
 {
 	if (!ThrusterMount->HasBeenAssigned())return;

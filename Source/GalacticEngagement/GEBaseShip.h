@@ -123,6 +123,10 @@ public:
 	virtual void OnShipDeath();
 	virtual void WasTargetBy(AGEBaseShip* aggresser);
 
+	/* Returns Closest Mount To Screen Point within range Or Null if none */
+	UFUNCTION(BlueprintCallable, Category = "Control")
+	class UComponentMountPoint* ClosestMountToPoint(FVector2D screen_point,float range);
+
 	/*
 	* Add a Velcoity Effector to this ship
 	* An Effector is an object that affects the veleocity of this ship

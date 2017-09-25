@@ -17,6 +17,7 @@
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
 #include "Runtime/UMG/Public/Components/WidgetComponent.h"
@@ -348,7 +349,7 @@ UComponentMountPoint * AGEBaseShip::ClosestMountToPoint(FVector2D screen_point, 
 {
 	UComponentMountPoint* closestPoint = 0;
 
-	if (APlayerController* controller = Cast<APlayerController>(GetController()))
+    if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(),0))
 	{
 		float rangeSqr = (range*range);
 

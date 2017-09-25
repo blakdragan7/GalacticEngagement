@@ -346,26 +346,32 @@ void AGEBaseShip::WasTargetBy(AGEBaseShip * aggresser)
 
 UComponentMountPoint * AGEBaseShip::ClosestMountToPoint(FVector2D screen_point, float range)
 {
+	UComponentMountPoint* closestPoint = 0;
+
 	if (APlayerController* controller = Cast<APlayerController>(GetController()))
 	{
 		float rangeSqr = (range*range);
+
+		float distance = 1000000;
 
 		FVector2D ScreenLocation;
 		FVector WorldLocation = EngineMount->GetComponentLocation();
 		if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
 		{
-			if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+			distance = (ScreenLocation - screen_point).SizeSquared();
+			if (distance <= rangeSqr)
 			{
-				return EngineMount;
+				closestPoint = EngineMount;
 			}
 		}
 
 		WorldLocation = ThrusterMount->GetComponentLocation();
 		if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
 		{
-			if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+			float ldistance = (ScreenLocation - screen_point).SizeSquared();
+			if (ldistance <= rangeSqr && ldistance < distance)
 			{
-				return ThrusterMount;
+				closestPoint = ThrusterMount;
 			}
 		}
 
@@ -374,9 +380,10 @@ UComponentMountPoint * AGEBaseShip::ClosestMountToPoint(FVector2D screen_point, 
 			WorldLocation = mount->GetComponentLocation();
 			if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
 			{
-				if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+				float ldistance = (ScreenLocation - screen_point).SizeSquared();
+				if (ldistance <= rangeSqr && ldistance < distance)
 				{
-					return mount;
+					closestPoint = mount;
 				}
 			}
 		}
@@ -386,14 +393,15 @@ UComponentMountPoint * AGEBaseShip::ClosestMountToPoint(FVector2D screen_point, 
 			WorldLocation = mount->GetComponentLocation();
 			if (controller->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation))
 			{
-				if ((ScreenLocation - screen_point).SizeSquared() <= rangeSqr)
+				float ldistance = (ScreenLocation - screen_point).SizeSquared();
+				if (ldistance <= rangeSqr && ldistance < distance)
 				{
-					return mount;
+					closestPoint = mount;
 				}
 			}
 		}
 	}
-	return nullptr;
+	return closestPoint;
 }
 
 void AGEBaseShip::AddVelocityEffector(AActor * effector)

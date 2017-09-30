@@ -4,6 +4,7 @@
 #include "GEBaseShip.h"
 #include "Interfaces/GEVelocityEffector.h"
 #include "Math/GEGameStatistics.h"
+#include "Net/UnrealNetwork.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
 #include "Engine.h"
@@ -43,9 +44,19 @@ const FVector UGEThrusterBaseComponent::GetMoveToLocation() const
 	return WorldMoveToLocation;
 }
 
+bool UGEThrusterBaseComponent::Server_StopMoving_Validate()
+{
+	return true;
+}
+
+void UGEThrusterBaseComponent::Server_StopMoving_Implementation()
+{
+	IsAccelerating = false;
+}
+
 void UGEThrusterBaseComponent::TickComponent(float DeltaTime)
 {
-	if (ControlledShip)
+	if (ControlledShip && ControlledShip->Role == ROLE_Authority)
 	{
 		if (IsValid(ControlledShip)) // Update Position and rotation if controlledShip is valid
 		{
@@ -147,7 +158,7 @@ void UGEThrusterBaseComponent::UpdateMovementRates(FVector Direction, float Delt
 
 void UGEThrusterBaseComponent::StopMoving()
 {
-	IsAccelerating = false;
+	Server_StopMoving();
 }
 
 void UGEThrusterBaseComponent::MoveTo(FVector2D screenMoveToLocation)

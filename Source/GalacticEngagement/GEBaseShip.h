@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEGestureHandler.h"
 #include "GameFramework/Pawn.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "ShipComponents/ShipComponentTypes.h"
@@ -17,7 +18,7 @@ enum class ESelectedGun : uint8
 };
 
 UCLASS()
-class GALACTICENGAGEMENT_API AGEBaseShip : public APawn, public IGEDamageInterface
+class GALACTICENGAGEMENT_API AGEBaseShip : public APawn, public IGEDamageInterface, public IGEGestureHandlerDelegate
 {
 	GENERATED_BODY()
 private:
@@ -30,6 +31,7 @@ private:
 	UStaticMeshComponent* ShipBody;
 	UPROPERTY(Category = UI, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* ShipWidget;
+
 	// debug components
 	UPROPERTY(Category = Ship, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
@@ -46,6 +48,8 @@ private:
 	bool HasCameraDistance;
 
 	class GETravelManagerBase* TravelManager;
+
+	UGEGestureHandler* GestureHandler;
 
 protected:
 	
@@ -73,7 +77,7 @@ public:
 	void ResetToNormalCameraDistance(); // Resets cmaera from max distance, if called without a previous call to SetToMaxCaemraDistance sets the camera to smallest distance
 
 public:
-	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly, Replicated)
 	int32 CurrentHealth;
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
@@ -97,6 +101,35 @@ public:
 	TArray<class UComponentMountPoint*> MainGunComponents;
 	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
 	TArray<class UComponentMountPoint*> SecondaryGunComponents;
+
+	/* Network Functions */
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_ReceiveDamage(int32 Damage, FVector DamageLocation);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCast_ReceiveDamage(int32 Damage, FVector DamageLocation);
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	virtual void Server_SetLocation(const FVector& NewLocation); 
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MultiCast_SetLocation(const FVector& NewLocation);
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_SetRotation(FRotator rotation);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCast_SetRotation(FRotator rotation);
+
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_UpdateComponentsWithInput(FVector2D ScreenPosition);
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_FireSelectedGun();
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_FireGunMapping(bool ShouldFire);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -157,6 +190,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Ship Stats")
 	float GetHealthPercentage();
+
 	/** AI Functions */
 	void MoveTo(AActor* Actor);
 	virtual void InvalidateTarget();
@@ -166,4 +200,14 @@ public:
 	virtual void SearchForTarget(float radius);
 	virtual bool CanBeTargetedBy(AGEBaseShip* other);
 	virtual AGEBaseShip* GetTarget();
+
+
+	/* PGEGestureHandlerDelegate Implentation */
+	virtual void DoubleTap(float x, float y) override;
+	virtual void SingleTap(float x, float y) override;
+	virtual void ConstTapStart(float x, float y) override;
+	virtual void ConstTapEnd(float x, float y) override;
+	virtual void SwipeStart(float x, float y) override;
+	virtual void SwipeUpdate(float x, float y) override;
+	virtual void SwipeEnd(float x, float y) override;
 };

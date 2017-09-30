@@ -14,12 +14,14 @@ AGalacticEngagementGameModeBase::AGalacticEngagementGameModeBase()
 
 void AGalacticEngagementGameModeBase::BeginPlay()
 {
+
 	SpawnAllAstroids();
 	SpawnPlanet();
 }
 
 void AGalacticEngagementGameModeBase::SpawnAllAstroids()
 {
+
 	if (AstroidClass)
 	{
 		for (int32 i = 0; i < NumberOfAstroids; i++)
@@ -37,6 +39,7 @@ void AGalacticEngagementGameModeBase::SpawnAllAstroids()
 
 void AGalacticEngagementGameModeBase::SpawnPlanet()
 {
+
 	if (PlanetClass)
 	{
 		FTransform transform;

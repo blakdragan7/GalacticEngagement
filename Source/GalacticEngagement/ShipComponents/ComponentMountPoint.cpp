@@ -6,6 +6,7 @@
 #include "GEEngineBaseComponent.h"
 #include "GEThrusterBaseComponent.h"
 #include "GEGunBaseComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
@@ -40,6 +41,11 @@ void UComponentMountPoint::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	if (!ShouldTick)return;
 	if (AssignedComponent)AssignedComponent->TickComponent(DeltaTime);
+}
+
+void UComponentMountPoint::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	DOREPLIFETIME(UComponentMountPoint, AssignedComponent);
 }
 
 bool UComponentMountPoint::AssignShipComponent(TSubclassOf<class UShipComponentBase> ComponentClass)

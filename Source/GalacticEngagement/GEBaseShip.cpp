@@ -10,6 +10,7 @@
 #include "Math/GEGameStatistics.h"
 #include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
+#include "Net/UnrealNetwork.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Components/ArrowComponent.h"
@@ -29,6 +30,7 @@ AGEBaseShip::AGEBaseShip()
 	AIControllerClass = AGEBaseEnemyAIController::StaticClass();
 
 	SetReplicates(true);
+	//bReplicateMovement = true;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 
@@ -41,6 +43,7 @@ AGEBaseShip::AGEBaseShip()
 
 	ShipWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Ship HUD"));
 	ShipWidget->SetupAttachment(RootComponent);
+	ShipWidget->SetIsReplicated(true);
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -61,11 +64,16 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterMount->SetupAttachment(ShipBody);
 	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
 	ThrusterMount->index = 1;
+	ThrusterMount->SetIsReplicated(true);
 
 	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
 	EngineMount->SetupAttachment(ShipBody);
 	EngineMount->AcceptedComponentType = EShipComponentType::SC_Engine;
 	EngineMount->index = 0;
+	EngineMount->SetIsReplicated(true);
+
+	GestureHandler = CreateDefaultSubobject<UGEGestureHandler>(TEXT("GestureHandler"));
+	GestureHandler->RegisterDelegate(this);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
@@ -121,6 +129,81 @@ void AGEBaseShip::ResetToNormalCameraDistance()
 	}
 }
 
+bool AGEBaseShip::Server_ReceiveDamage_Validate(int32 Damage, FVector DamageLocation)
+{
+	return true;
+}
+
+void AGEBaseShip::Server_ReceiveDamage_Implementation(int32 Damage, FVector DamageLocation)
+{
+	CurrentHealth -= Damage;
+	
+	if (CurrentHealth <= 0)
+	{
+		ShipDestroyed();
+		OnShipDeath();
+	}
+
+	MultiCast_ReceiveDamage(Damage,DamageLocation);
+
+}
+
+void AGEBaseShip::MultiCast_ReceiveDamage_Implementation(int32 Damage, FVector DamageLocation)
+{
+	AGEDamageIndicator::SpawnIndicatorWithDamageAndDuration(this, DamageLocation, 0.25, FString::FromInt(Damage));
+}
+
+bool AGEBaseShip::Server_SetLocation_Validate(const FVector & NewLocation)
+{
+	return true;
+}
+
+void AGEBaseShip::Server_SetLocation_Implementation(const FVector & NewLocation)
+{
+	MultiCast_SetLocation(NewLocation);
+}
+
+void AGEBaseShip::MultiCast_SetLocation_Implementation(const FVector & NewLocation)
+{
+	SetActorLocation(NewLocation);
+}
+
+bool AGEBaseShip::Server_SetRotation_Validate(FRotator rotation)
+{
+	return true;
+}
+
+void AGEBaseShip::Server_SetRotation_Implementation(FRotator rotation)
+{
+	MultiCast_SetRotation(rotation);
+}
+
+void AGEBaseShip::MultiCast_SetRotation_Implementation(FRotator rotation)
+{
+	ShipBody->SetRelativeRotation(rotation);
+}
+
+bool AGEBaseShip::Server_UpdateComponentsWithInput_Validate(FVector2D ScreenPosition)
+{
+	return true;
+}
+
+void AGEBaseShip::Server_UpdateComponentsWithInput_Implementation(FVector2D ScreenPosition)
+{
+	if (ThrusterMount->HasBeenAssigned())
+		ThrusterMount->ThrusterComponent->MoveTo(ScreenPosition);
+}
+
+bool AGEBaseShip::Server_FireSelectedGun_Validate()
+{
+	return true;
+}
+
+void AGEBaseShip::Server_FireSelectedGun_Implementation()
+{
+	FireSelectedGun();
+}
+
 // Called every frame
 void AGEBaseShip::Tick(float DeltaTime)
 {
@@ -141,7 +224,9 @@ void AGEBaseShip::UpdateInputs()
 	{
 		FVector2D ScreenMoveToPoint;
 
-		if (APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		APlayerController* controller = Cast<APlayerController>(GetController());
+		if (controller == 0)APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		if(controller)
 		{
 			float targetX, targetY;
 			bool isCurrentlyPressed;
@@ -170,8 +255,8 @@ void AGEBaseShip::UpdateInputs()
 			UE_LOG(LogTemp, Warning, TEXT("Could Not Get PlayerController !"));
 			return;
 		}
-		if(ThrusterMount->HasBeenAssigned())
-		ThrusterMount->ThrusterComponent->MoveTo(ScreenMoveToPoint);
+
+		Server_UpdateComponentsWithInput(ScreenMoveToPoint);
 	}
 }
 
@@ -188,13 +273,7 @@ void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AGEBaseShip::ReceiveDamage(int32 Damage, FVector DamageLocation)
 {
-	CurrentHealth -= Damage;
-	AGEDamageIndicator::SpawnIndicatorWithDamageAndDuration(this, DamageLocation, 0.25, FString::FromInt(Damage));
-	if (CurrentHealth <= 0)
-	{
-		ShipDestroyed();
-		OnShipDeath();
-	}
+	Server_ReceiveDamage(Damage, DamageLocation);
 }
 
 int32 AGEBaseShip::GetHealth()
@@ -224,6 +303,7 @@ void AGEBaseShip::UpdateCameraPosition()
 		CameraBoom->TargetArmLength = StartingCameraArmLength;
 	}
 }
+
 void AGEBaseShip::MoveToUp()
 {
 	if (!ThrusterMount->HasBeenAssigned())return;
@@ -262,47 +342,59 @@ void AGEBaseShip::SetRotation(FQuat rotation)
 void AGEBaseShip::SetRotation(FRotator rotation)
 {
 	check(ShipBody);
-	//ShipBody->AddRelativeRotation(rotation);
-	ShipBody->SetRelativeRotation(rotation);
+	Server_SetRotation(rotation);
+	//ShipBody->SetRelativeRotation(rotation);
+}
+
+bool AGEBaseShip::Server_FireGunMapping_Validate(bool ShouldFire)
+{
+	return true;;
+}
+
+void AGEBaseShip::Server_FireGunMapping_Implementation(bool ShouldFire)
+{
+	FireGunToggle = ShouldFire;
 }
 
 void AGEBaseShip::FireGunDownMapping()
 {
-	FireGunToggle = true;
+	Server_FireGunMapping(true);
 }
 
 void AGEBaseShip::FireGunReleaseMapping()
 {
-	FireGunToggle = false;
+	Server_FireGunMapping(false);
 }
 
 bool AGEBaseShip::SetLocation(const FVector & NewLocation, bool bSweep, FHitResult &OutSweepHitResult)
 {
-	if (bSweep)
+	if (bSweep && Role == ROLE_Authority)
 	{
 		FCollisionQueryParams TraceParams;
 		TraceParams.AddIgnoredActor(this);
 
 		FVector Origin, Extents;
-		GetActorBounds(true,Origin,Extents);
+		GetActorBounds(true, Origin, Extents);
 		FVector currentLocation = GetActorLocation();
 		if (GetWorld()->SweepSingleByChannel(OutSweepHitResult, currentLocation, NewLocation, FQuat(), ECollisionChannel::ECC_WorldDynamic, FCollisionShape::MakeSphere(GEGameStatistics::MaxVectorComponent(Extents)), TraceParams))
 		{
-			SetActorLocation(OutSweepHitResult.Location + OutSweepHitResult.ImpactNormal * 10);
+			MultiCast_SetLocation(OutSweepHitResult.Location + OutSweepHitResult.ImpactNormal * 10);
 			return false;
 		}
 		else
 		{
-			SetActorLocation(NewLocation);
+			MultiCast_SetLocation(NewLocation);
 			return true;
 		}
-	
+
 	}
-	return SetActorLocation(NewLocation);
+	MultiCast_SetLocation(NewLocation);
+	return true;
 }
 
 void AGEBaseShip::FireSelectedGun()
 {
+	if (Role != ROLE_Authority)return;
 	// Fire Current Weapon
 	switch (SelectedGun)
 	{
@@ -453,6 +545,12 @@ void AGEBaseShip::InvalidateTarget()
 	}
 }
 
+void AGEBaseShip::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGEBaseShip, CurrentHealth);
+}
+
 bool AGEBaseShip::ShouldFireGun()
 {
 	if (CurrentlyTargetedShip != nullptr)
@@ -524,4 +622,46 @@ bool AGEBaseShip::CanBeTargetedBy(AGEBaseShip* other)
 AGEBaseShip* AGEBaseShip::GetTarget()
 {
 	return CurrentlyTargetedShip;
+}
+
+/* PGEGestureHandlerDelegate Implentation */
+void AGEBaseShip::DoubleTap(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("DoubleTap"));
+}
+
+void AGEBaseShip::SingleTap(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SingleTap"));
+
+}
+
+void AGEBaseShip::ConstTapStart(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ConstTapStart"));
+
+}
+
+void AGEBaseShip::ConstTapEnd(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ConstTapEnd"));
+
+}
+
+void AGEBaseShip::SwipeStart(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SwipeStart"));
+
+}
+
+void AGEBaseShip::SwipeUpdate(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SwipeUpdate"));
+
+}
+
+void AGEBaseShip::SwipeEnd(float x, float y)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SwipeEnd"));
+
 }

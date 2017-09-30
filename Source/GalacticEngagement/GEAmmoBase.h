@@ -50,8 +50,20 @@ public:
 
 	virtual void Launch(AActor* LaunchingActor, FVector Direction);
 	
+	UFUNCTION(Server, WithValidation, Reliable)
+	virtual void Server_Launch(AActor* LaunchingActor, FVector Direction);
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MultiCast_Launch(AActor* LaunchingActor, FVector Direction);
+	
 	UFUNCTION()
 	void OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCast_OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 };
 
 /*

@@ -52,6 +52,9 @@ public:
 
 	const FVector GetMoveToLocation()const;
 
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_StopMoving();
+
 	virtual void TickComponent(float DeltaTime)override;
 
 	virtual void UpdateVelocityFromEffectors(FVector CurrentPosition, float DeltaTime);

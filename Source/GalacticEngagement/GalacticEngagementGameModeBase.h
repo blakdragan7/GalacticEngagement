@@ -43,6 +43,7 @@ public:
 	
 
 private:
+	
 	void SpawnAllAstroids();
 	void SpawnPlanet();
 

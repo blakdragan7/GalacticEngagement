@@ -9,10 +9,13 @@
 #include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Interfaces/GEDamageInterface.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AGEAmmoBase::AGEAmmoBase()
 {
+	SetReplicates(true);
+
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
@@ -36,6 +39,7 @@ AGEAmmoBase::AGEAmmoBase()
 	AmmoMesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 	AmmoMesh->OnComponentBeginOverlap.AddDynamic(this, &AGEAmmoBase::OnComponentOverlapBegin);
 	//AmmoMesh->OnComponentEndOverlap.AddDynamic(this, &AGEAmmoBase::OnXXXOverlapEnd);
+	AmmoMesh->SetIsReplicated(true);
 
 	TimeToLive = 10;
 	InitialSpeed = 2000;
@@ -69,12 +73,42 @@ void AGEAmmoBase::Tick(float DeltaTime)
 
 void AGEAmmoBase::Launch(AActor* LaunchingActor, FVector Direction)
 {
+	Server_Launch(LaunchingActor,Direction);
+}
+
+bool AGEAmmoBase::Server_Launch_Validate(AActor * LaunchingActor, FVector Direction)
+{
+	return true;
+}
+
+void AGEAmmoBase::Server_Launch_Implementation(AActor * LaunchingActor, FVector Direction)
+{
+	MultiCast_Launch(LaunchingActor, Direction);
+}
+
+void AGEAmmoBase::MultiCast_Launch_Implementation(AActor * LaunchingActor, FVector Direction)
+{
 	Velocity = Direction * InitialSpeed;
 	ignoredActor = LaunchingActor;
 	bWasLaunched = true;
 }
 
 void AGEAmmoBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	Server_OnComponentOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+bool AGEAmmoBase::Server_OnComponentOverlapBegin_Validate(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	return true;
+}
+
+void AGEAmmoBase::Server_OnComponentOverlapBegin_Implementation(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	MultiCast_OnComponentOverlapBegin(OverlappedComponent,OtherActor,OtherComp,OtherBodyIndex,bFromSweep,SweepResult);
+}
+
+void AGEAmmoBase::MultiCast_OnComponentOverlapBegin_Implementation(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (ignoredActor && IsValid(this) && bWasLaunched)
 	{

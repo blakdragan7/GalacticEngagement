@@ -18,7 +18,7 @@ protected:
 	UPROPERTY(Category = Debug, VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* FrontFacingArrow;
 	
-	UPROPERTY(Category = Component, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = Component, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Replicated)
 	class UShipComponentBase* AssignedComponent;
 
 public:	
@@ -33,7 +33,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(Category = Type, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = Type, EditAnywhere, BlueprintReadWrite, Replicated)
 	EShipComponentType AcceptedComponentType;
 
 	UPROPERTY(Category = Tick, EditAnywhere, BlueprintReadWrite)

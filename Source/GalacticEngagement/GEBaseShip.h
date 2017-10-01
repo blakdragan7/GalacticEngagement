@@ -49,6 +49,7 @@ private:
 
 	class GETravelManagerBase* TravelManager;
 
+	UPROPERTY()
 	UGEGestureHandler* GestureHandler;
 
 protected:
@@ -127,9 +128,6 @@ public:
 
 	UFUNCTION(Server, WithValidation, Reliable)
 	void Server_FireSelectedGun();
-
-	UFUNCTION(Server, WithValidation, Reliable)
-	void Server_FireGunMapping(bool ShouldFire);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

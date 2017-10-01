@@ -15,21 +15,21 @@ UGEGestureHandler::UGEGestureHandler()
 	SwipeStarted	= false;
 	HasConstTap		= false;
 
-	TimeToTap		= 0.2f;
+	TimeToTap		= 0.1f;
 	MaxTapTime		= 0.2f;
 }
 
 void UGEGestureHandler::Tick(float DeltaTime,float x,float y)
 {
-	FScopeLock lock(&CRSection);
+	//FScopeLock lock(&mutex);
 
-	float CurrentTime = UGameplayStatics::GetRealTimeSeconds(this);
+	float CurrentTime = UGameplayStatics::GetRealTimeSeconds(context);
 
 	if (CurrentTime - LastTouchDown > TimeToTap && HasTouchDown)
 	{
 		if (TapCount == 0) // A Swip In Happening or has started
 		{
-			for (PGEGestureHandlerDelegate* _delegate : delegates)
+			for (IGEGestureHandlerDelegate* _delegate : delegates)
 			{
 				if (!SwipeStarted)
 				{
@@ -49,7 +49,7 @@ void UGEGestureHandler::Tick(float DeltaTime,float x,float y)
 		if (HasConstTap)
 		{
 			HasConstTap = false;
-			for (PGEGestureHandlerDelegate* _delegate : delegates)
+			for (IGEGestureHandlerDelegate* _delegate : delegates)
 			{
 				_delegate->ConstTapEnd(x, y);
 			}
@@ -60,14 +60,14 @@ void UGEGestureHandler::Tick(float DeltaTime,float x,float y)
 		{
 			if (TapCount == 1)
 			{
-				for (PGEGestureHandlerDelegate* _delegate : delegates)
+				for (IGEGestureHandlerDelegate* _delegate : delegates)
 				{
 					_delegate->SingleTap(x, y);
 				}
 			}
 			else if (TapCount == 2)
 			{
-				for (PGEGestureHandlerDelegate* _delegate : delegates)
+				for (IGEGestureHandlerDelegate* _delegate : delegates)
 				{
 					_delegate->DoubleTap(x, y);
 				}
@@ -78,29 +78,29 @@ void UGEGestureHandler::Tick(float DeltaTime,float x,float y)
 	}
 }
 
-void UGEGestureHandler::RegisterDelegate(PGEGestureHandlerDelegate * _delegate)
+void UGEGestureHandler::RegisterDelegate(IGEGestureHandlerDelegate * _delegate)
 {
-	FScopeLock lock(&CRSection);
+	//FScopeLock lock(&mutex);
 	delegates.Add(_delegate);
 }
 
-void UGEGestureHandler::UnregisterDelegate(PGEGestureHandlerDelegate * _delegate)
+void UGEGestureHandler::UnregisterDelegate(IGEGestureHandlerDelegate * _delegate)
 {
-	FScopeLock lock(&CRSection);
+	//FScopeLock lock(&mutex);
 	delegates.Remove(_delegate);
 }
 
 void UGEGestureHandler::TouchDown(float x, float y)
 {
-	FScopeLock lock(&CRSection);
-	LastTouchDown = UGameplayStatics::GetRealTimeSeconds(this);
+	//FScopeLock lock(&mutex);
+	LastTouchDown = UGameplayStatics::GetRealTimeSeconds(context);
 	HasTouchDown = true;
 }
 
 void UGEGestureHandler::TouchUp(float x, float y)
 {
-	FScopeLock lock(&CRSection);
-	LastTouchUp = UGameplayStatics::GetRealTimeSeconds(this);
+	//FScopeLock lock(&mutex);
+	LastTouchUp = UGameplayStatics::GetRealTimeSeconds(context);
 
 	if (LastTouchUp - LastTouchDown <= TimeToTap)
 	{
@@ -109,7 +109,7 @@ void UGEGestureHandler::TouchUp(float x, float y)
 	if (SwipeStarted)
 	{
 		SwipeStarted = false;
-		for (PGEGestureHandlerDelegate* _delegate : delegates)
+		for (IGEGestureHandlerDelegate* _delegate : delegates)
 		{
 			_delegate->SwipeEnd(x, y);
 		}
@@ -125,7 +125,7 @@ void UGEGestureHandler::TappOccured(float x,float y)
 	if (TapCount >= 3 && !HasConstTap)
 	{
 		HasConstTap = true;
-		for (PGEGestureHandlerDelegate* _delegate : delegates)
+		for (IGEGestureHandlerDelegate* _delegate : delegates)
 		{
 			_delegate->ConstTapStart(x, y);
 		}

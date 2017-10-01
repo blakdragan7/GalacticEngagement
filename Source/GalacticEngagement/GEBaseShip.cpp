@@ -72,9 +72,6 @@ AGEBaseShip::AGEBaseShip()
 	EngineMount->index = 0;
 	EngineMount->SetIsReplicated(true);
 
-	GestureHandler = CreateDefaultSubobject<UGEGestureHandler>(TEXT("GestureHandler"));
-	GestureHandler->RegisterDelegate(this);
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
 
@@ -102,6 +99,11 @@ AGEBaseShip::AGEBaseShip()
 void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	GestureHandler = NewObject<UGEGestureHandler>(this, TEXT("GestureHandler"));
+	GestureHandler->RegisterDelegate(this);
+	GestureHandler->context = this;
+
 	CurrentHealth = MaxHealth;
 	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
 }
@@ -191,7 +193,16 @@ bool AGEBaseShip::Server_UpdateComponentsWithInput_Validate(FVector2D ScreenPosi
 void AGEBaseShip::Server_UpdateComponentsWithInput_Implementation(FVector2D ScreenPosition)
 {
 	if (ThrusterMount->HasBeenAssigned())
-		ThrusterMount->ThrusterComponent->MoveTo(ScreenPosition);
+	{
+		if (ScreenPosition.X != -1)
+		{
+			ThrusterMount->ThrusterComponent->MoveTo(ScreenPosition);
+		}
+		else
+		{
+			ThrusterMount->ThrusterComponent->StopMoving();
+		}
+	}
 }
 
 bool AGEBaseShip::Server_FireSelectedGun_Validate()
@@ -211,8 +222,7 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 	UpdateInputs();
 	UpdateCameraPosition();
-	if (FireGunToggle)FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
-
+	if (FireGunToggle)Server_FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
 		100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
 	
@@ -220,7 +230,7 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 void AGEBaseShip::UpdateInputs()
 {
-	if (HasMovementInput)
+	//if (HasMovementInput)
 	{
 		FVector2D ScreenMoveToPoint;
 
@@ -249,14 +259,15 @@ void AGEBaseShip::UpdateInputs()
 					}
 				}
 			}
+
+			if (GestureHandler)GestureHandler->Tick(0, targetX, targetY);
+
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Could Not Get PlayerController !"));
 			return;
 		}
-
-		Server_UpdateComponentsWithInput(ScreenMoveToPoint);
 	}
 }
 
@@ -306,14 +317,14 @@ void AGEBaseShip::UpdateCameraPosition()
 
 void AGEBaseShip::MoveToUp()
 {
-	if (!ThrusterMount->HasBeenAssigned())return;
 	HasMovementInput = false;
-	ThrusterMount->ThrusterComponent->StopMoving();
+	if (GestureHandler)GestureHandler->TouchUp(0, 0);
 }
 
 void AGEBaseShip::MoveToDown()
 {
 	HasMovementInput = true;
+	if(GestureHandler)GestureHandler->TouchDown(0,0);
 }
 
 FVector AGEBaseShip::GetCurrentForwardVector()
@@ -346,24 +357,14 @@ void AGEBaseShip::SetRotation(FRotator rotation)
 	//ShipBody->SetRelativeRotation(rotation);
 }
 
-bool AGEBaseShip::Server_FireGunMapping_Validate(bool ShouldFire)
-{
-	return true;;
-}
-
-void AGEBaseShip::Server_FireGunMapping_Implementation(bool ShouldFire)
-{
-	FireGunToggle = ShouldFire;
-}
-
 void AGEBaseShip::FireGunDownMapping()
 {
-	Server_FireGunMapping(true);
+	FireGunToggle = true;
 }
 
 void AGEBaseShip::FireGunReleaseMapping()
 {
-	Server_FireGunMapping(false);
+	FireGunToggle = false;
 }
 
 bool AGEBaseShip::SetLocation(const FVector & NewLocation, bool bSweep, FHitResult &OutSweepHitResult)
@@ -628,40 +629,43 @@ AGEBaseShip* AGEBaseShip::GetTarget()
 void AGEBaseShip::DoubleTap(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoubleTap"));
+	Server_UpdateComponentsWithInput(FVector2D(x, y));
+	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
 }
 
 void AGEBaseShip::SingleTap(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SingleTap"));
-
+	Server_UpdateComponentsWithInput(FVector2D(x, y));
+	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
 }
 
 void AGEBaseShip::ConstTapStart(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ConstTapStart"));
-
+	FireGunToggle = true;
 }
 
 void AGEBaseShip::ConstTapEnd(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ConstTapEnd"));
-
+	FireGunToggle = false;
 }
 
 void AGEBaseShip::SwipeStart(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeStart"));
-
+	Server_UpdateComponentsWithInput(FVector2D(x, y));
 }
 
 void AGEBaseShip::SwipeUpdate(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeUpdate"));
-
+	Server_UpdateComponentsWithInput(FVector2D(x,y));
 }
 
 void AGEBaseShip::SwipeEnd(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeEnd"));
-
+	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
 }

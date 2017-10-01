@@ -32,7 +32,7 @@ class GALACTICENGAGEMENT_API UGEGestureHandler : public UObject
 private:
 	TArray<IGEGestureHandlerDelegate*> delegates;
 
-	FCriticalSection CRSection;
+	FCriticalSection mutex;
 	
 	float TimeToTap;
 	float MaxTapTime;
@@ -43,6 +43,7 @@ private:
 
 	float LastTouchDown,LastTouchUp;
 	int32 TapCount; // Number of consistent taps
+
 
 private:
 	void TappOccured(float x, float y);
@@ -58,4 +59,6 @@ public:
 
 	void TouchDown(float x, float y); // Called Tp Update The State Of Gestures
 	void TouchUp(float x,float y); // Called Tp Update The State Of Gestures
+
+	AActor* context;
 };

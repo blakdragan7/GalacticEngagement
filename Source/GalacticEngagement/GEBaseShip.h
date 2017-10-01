@@ -55,6 +55,9 @@ private:
 	UPROPERTY()
 	UGEGestureHandler* GestureHandler;
 
+	UPROPERTY()
+	UGEGestureHandler* GestureHandler2;
+
 protected:
 	
 	UPROPERTY(Category = "Ship AI", EditAnywhere, BlueprintReadWrite)
@@ -146,6 +149,9 @@ public:
 	// Input
 	void MoveToDown();
 	void MoveToUp();
+
+	void MoveToDown2();
+	void MoveToUp2();
 	
 	FVector GetCurrentForwardVector();
 	FRotator GetCurrentRotation();

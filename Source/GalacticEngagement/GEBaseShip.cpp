@@ -109,6 +109,10 @@ void AGEBaseShip::BeginPlay()
 	GestureHandler->RegisterDelegate(this);
 	GestureHandler->context = this;
 
+	GestureHandler2 = NewObject<UGEGestureHandler>(this, TEXT("GestureHandler2"));
+	GestureHandler2->RegisterDelegate(this);
+	GestureHandler2->context = this;
+
 	CurrentHealth = MaxHealth;
 	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
 }
@@ -268,6 +272,8 @@ void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	UE_LOG(LogTemp,Warning,TEXT("setup input"));
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	InputComponent->BindAction("Touch2", IE_Pressed, this, &AGEBaseShip::MoveToDown2);
+	InputComponent->BindAction("Touch2", IE_Released, this, &AGEBaseShip::MoveToUp2);
 	InputComponent->BindAction("MovementInput", IE_Pressed, this, &AGEBaseShip::MoveToDown);
 	InputComponent->BindAction("MovementInput", IE_Released, this, &AGEBaseShip::MoveToUp);
 	InputComponent->BindAction("MainFire", IE_Released, this, &AGEBaseShip::FireGunReleaseMapping);
@@ -318,6 +324,18 @@ void AGEBaseShip::MoveToDown()
 {
 	HasMovementInput = true;
 	if(GestureHandler)GestureHandler->TouchDown(0,0);
+}
+
+void AGEBaseShip::MoveToUp2()
+{
+	HasMovementInput = false;
+	if (GestureHandler2)GestureHandler2->TouchUp(0, 0);
+}
+
+void AGEBaseShip::MoveToDown2()
+{
+	HasMovementInput = true;
+	if (GestureHandler2)GestureHandler2->TouchDown(0, 0);
 }
 
 FVector AGEBaseShip::GetCurrentForwardVector()

@@ -56,7 +56,7 @@ void UGEThrusterBaseComponent::Server_StopMoving_Implementation()
 
 void UGEThrusterBaseComponent::TickComponent(float DeltaTime)
 {
-	if (ControlledShip && ControlledShip->Role == ROLE_Authority)
+	if ((ControlledShip && ControlledShip->Role == ROLE_Authority) || ControlledShip->bIsMultiplayer == false)
 	{
 		if (IsValid(ControlledShip)) // Update Position and rotation if controlledShip is valid
 		{

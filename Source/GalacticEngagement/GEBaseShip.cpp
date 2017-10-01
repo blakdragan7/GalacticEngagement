@@ -93,6 +93,8 @@ AGEBaseShip::AGEBaseShip()
 	HasCameraDistance = false;
 
 	SelectedGun = ESelectedGun::SG_Main;
+
+	bIsMultiplayer = true;
 }
 
 // Called when the game starts or when spawned
@@ -100,6 +102,9 @@ void AGEBaseShip::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController == 0)PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
 	GestureHandler = NewObject<UGEGestureHandler>(this, TEXT("GestureHandler"));
 	GestureHandler->RegisterDelegate(this);
 	GestureHandler->context = this;
@@ -222,7 +227,8 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 	UpdateInputs();
 	UpdateCameraPosition();
-	if (FireGunToggle)Server_FireSelectedGun(); // Up to Individual Guns to Limit Fire rate
+	if (bIsMultiplayer) { if (FireGunToggle)Server_FireSelectedGun(); } // Up to Individual Guns to Limit Fire rate
+	else { if (FireGunToggle)Server_FireSelectedGun_Implementation(); } // Up to Individual Guns to Limit Fire rate
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + (ShipBody->GetForwardVector() * 100.0),
 		100.f, FColor::Red, false, -1.f, (uint8)'\000', 10.f);
 	
@@ -230,28 +236,19 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 void AGEBaseShip::UpdateInputs()
 {
-	//if (HasMovementInput)
+	//if (Role != ROLE_Authority)
 	{
-		FVector2D ScreenMoveToPoint;
-
-		APlayerController* controller = Cast<APlayerController>(GetController());
-		if (controller == 0)APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if(controller)
+		if(PlayerController)
 		{
 			float targetX, targetY;
 			bool isCurrentlyPressed;
-			controller->GetInputTouchState(ETouchIndex::Touch1, targetX, targetY, isCurrentlyPressed);
-			if (isCurrentlyPressed)
+			PlayerController->GetInputTouchState(ETouchIndex::Touch1, targetX, targetY, isCurrentlyPressed);
+			if (!isCurrentlyPressed)
 			{
-				ScreenMoveToPoint = FVector2D(targetX, targetY);
-			}
-			else
-			{
-				if (controller->IsInputKeyDown(EKeys::LeftMouseButton))
+				if (PlayerController->IsInputKeyDown(EKeys::LeftMouseButton))
 				{
-					if (controller->GetMousePosition(targetX, targetY))
+					if (PlayerController->GetMousePosition(targetX, targetY))
 					{
-						ScreenMoveToPoint = FVector2D(targetX, targetY);
 					}
 					else
 					{
@@ -262,11 +259,6 @@ void AGEBaseShip::UpdateInputs()
 
 			if (GestureHandler)GestureHandler->Tick(0, targetX, targetY);
 
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Could Not Get PlayerController !"));
-			return;
 		}
 	}
 }
@@ -284,7 +276,8 @@ void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AGEBaseShip::ReceiveDamage(int32 Damage, FVector DamageLocation)
 {
-	Server_ReceiveDamage(Damage, DamageLocation);
+	if (bIsMultiplayer)Server_ReceiveDamage(Damage, DamageLocation);
+	else Server_ReceiveDamage_Implementation(Damage, DamageLocation);
 }
 
 int32 AGEBaseShip::GetHealth()
@@ -353,7 +346,8 @@ void AGEBaseShip::SetRotation(FQuat rotation)
 void AGEBaseShip::SetRotation(FRotator rotation)
 {
 	check(ShipBody);
-	Server_SetRotation(rotation);
+	if(bIsMultiplayer)Server_SetRotation(rotation);
+	else Server_SetRotation_Implementation(rotation);
 	//ShipBody->SetRelativeRotation(rotation);
 }
 
@@ -369,7 +363,7 @@ void AGEBaseShip::FireGunReleaseMapping()
 
 bool AGEBaseShip::SetLocation(const FVector & NewLocation, bool bSweep, FHitResult &OutSweepHitResult)
 {
-	if (bSweep && Role == ROLE_Authority)
+	if (bSweep && Role == ROLE_Authority || !bIsMultiplayer)
 	{
 		FCollisionQueryParams TraceParams;
 		TraceParams.AddIgnoredActor(this);
@@ -395,7 +389,7 @@ bool AGEBaseShip::SetLocation(const FVector & NewLocation, bool bSweep, FHitResu
 
 void AGEBaseShip::FireSelectedGun()
 {
-	if (Role != ROLE_Authority)return;
+	if (Role != ROLE_Authority && bIsMultiplayer)return;
 	// Fire Current Weapon
 	switch (SelectedGun)
 	{
@@ -629,15 +623,31 @@ AGEBaseShip* AGEBaseShip::GetTarget()
 void AGEBaseShip::DoubleTap(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoubleTap"));
-	Server_UpdateComponentsWithInput(FVector2D(x, y));
-	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	if (bIsMultiplayer)
+	{
+		Server_UpdateComponentsWithInput(FVector2D(x, y));
+		Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	}
+	else
+	{
+		Server_UpdateComponentsWithInput_Implementation(FVector2D(x, y));
+		Server_UpdateComponentsWithInput_Implementation(FVector2D(-1, -1));
+	}
 }
 
 void AGEBaseShip::SingleTap(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SingleTap"));
-	Server_UpdateComponentsWithInput(FVector2D(x, y));
-	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	if (bIsMultiplayer)
+	{
+		Server_UpdateComponentsWithInput(FVector2D(x, y));
+		Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	}
+	else
+	{
+		Server_UpdateComponentsWithInput_Implementation(FVector2D(x, y));
+		Server_UpdateComponentsWithInput_Implementation(FVector2D(-1, -1));
+	}
 }
 
 void AGEBaseShip::ConstTapStart(float x, float y)
@@ -655,17 +665,20 @@ void AGEBaseShip::ConstTapEnd(float x, float y)
 void AGEBaseShip::SwipeStart(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeStart"));
-	Server_UpdateComponentsWithInput(FVector2D(x, y));
+	if(bIsMultiplayer)Server_UpdateComponentsWithInput(FVector2D(x, y));
+	else Server_UpdateComponentsWithInput_Implementation(FVector2D(x, y));
 }
 
 void AGEBaseShip::SwipeUpdate(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeUpdate"));
-	Server_UpdateComponentsWithInput(FVector2D(x,y));
+	if(bIsMultiplayer)Server_UpdateComponentsWithInput(FVector2D(x,y));
+	else Server_UpdateComponentsWithInput_Implementation(FVector2D(x, y));
 }
 
 void AGEBaseShip::SwipeEnd(float x, float y)
 {
 	UE_LOG(LogTemp, Warning, TEXT("SwipeEnd"));
-	Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	if (bIsMultiplayer)Server_UpdateComponentsWithInput(FVector2D(-1, -1));
+	else Server_UpdateComponentsWithInput_Implementation(FVector2D(-1, -1));
 }

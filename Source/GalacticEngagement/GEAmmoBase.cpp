@@ -15,12 +15,12 @@
 AGEAmmoBase::AGEAmmoBase()
 {
 	SetReplicates(true);
+	bReplicateMovement = true;
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
 	bWasLaunched = false;
-	SetReplicates(true);
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AmmoRoot"));
 	AmmoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AmmoMesh"));
@@ -83,33 +83,20 @@ bool AGEAmmoBase::Server_Launch_Validate(AActor * LaunchingActor, FVector Direct
 
 void AGEAmmoBase::Server_Launch_Implementation(AActor * LaunchingActor, FVector Direction)
 {
-	MultiCast_Launch(LaunchingActor, Direction);
-}
-
-void AGEAmmoBase::MultiCast_Launch_Implementation(AActor * LaunchingActor, FVector Direction)
-{
 	Velocity = Direction * InitialSpeed;
 	ignoredActor = LaunchingActor;
 	bWasLaunched = true;
 }
 
+void AGEAmmoBase::MultiCast_Launch_Implementation(AActor * LaunchingActor, FVector Direction)
+{
+	
+}
+
 void AGEAmmoBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	Server_OnComponentOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-}
+	if (Role != ROLE_Authority)return;
 
-bool AGEAmmoBase::Server_OnComponentOverlapBegin_Validate(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
-	return true;
-}
-
-void AGEAmmoBase::Server_OnComponentOverlapBegin_Implementation(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
-	MultiCast_OnComponentOverlapBegin(OverlappedComponent,OtherActor,OtherComp,OtherBodyIndex,bFromSweep,SweepResult);
-}
-
-void AGEAmmoBase::MultiCast_OnComponentOverlapBegin_Implementation(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
 	if (ignoredActor && IsValid(this) && bWasLaunched)
 	{
 		if (ignoredActor != OtherActor)

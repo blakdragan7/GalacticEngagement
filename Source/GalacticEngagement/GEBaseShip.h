@@ -39,6 +39,9 @@ private:
 	UPROPERTY(Category = Camera, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float CameraOffsetScale;
 
+	UPROPERTY()
+	APlayerController* PlayerController;
+	
 	bool FireGunToggle;
 	TArray<AGEBaseShip*> AllCurrentlyTargetingMe;
 	bool HasMovementInput;
@@ -102,6 +105,9 @@ public:
 	TArray<class UComponentMountPoint*> MainGunComponents;
 	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
 	TArray<class UComponentMountPoint*> SecondaryGunComponents;
+
+	UPROPERTY(Category = Multiplayer, EditAnywhere, BlueprintReadWrite)
+	bool bIsMultiplayer;
 
 	/* Network Functions */
 

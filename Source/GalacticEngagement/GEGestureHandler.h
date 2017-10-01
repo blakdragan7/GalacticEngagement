@@ -41,6 +41,8 @@ private:
 	bool SwipeStarted;
 	bool HasConstTap;
 
+	bool HasAnyTouch;
+
 	float LastTouchDown,LastTouchUp;
 	int32 TapCount; // Number of consistent taps
 

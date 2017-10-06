@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine.h"
+#include "UnrealNetwork.h"
 
 //General Log
 DECLARE_LOG_CATEGORY_EXTERN(GELog, Log, All);

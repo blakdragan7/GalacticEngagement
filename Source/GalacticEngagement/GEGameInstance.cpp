@@ -219,6 +219,7 @@ void UGEGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 					// This is something you can't do in Blueprint for example!
 					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Session Number: %d | Sessionname: %s "), SearchIdx + 1, *(SessionSearch->SearchResults[SearchIdx].Session.OwningUserName)));
 				}
+				JoinSession(GetFirstGamePlayer(), SessionSearch->SearchResults[0]);
 			}
 		}
 	}

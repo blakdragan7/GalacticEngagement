@@ -9,6 +9,7 @@ AGEMatchMakingController::AGEMatchMakingController()
 {
 	OnFindSessionsCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &AGEMatchMakingController::OnFindSessionsComplete);
 	OnJoinSessionCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &AGEMatchMakingController::OnJoinSessionComplete);
+	bShowMouseCursor = true;
 }
 
 void AGEMatchMakingController::BeginPlay()

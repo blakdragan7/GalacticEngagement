@@ -127,7 +127,7 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 			SessionSearch = MakeShareable(new FOnlineSessionSearch());
 
 			SessionSearch->bIsLanQuery = bIsLAN;
-			SessionSearch->MaxSearchResults = 20;
+			SessionSearch->MaxSearchResults = 20000000;
 			SessionSearch->PingBucketSize = 50;
 
 			// We only want to set this Query Setting if "bIsPresence" is true

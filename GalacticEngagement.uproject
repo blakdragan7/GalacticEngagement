@@ -31,10 +31,6 @@
 		{
 			"Name": "OnlineSubsystemAmazon",
 			"Enabled": true
-		},
-		{
-			"Name": "OnlineSubsystemSteam",
-			"Enabled": true
 		}
 	]
 }

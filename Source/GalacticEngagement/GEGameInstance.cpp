@@ -2,6 +2,7 @@
 
 #include "GEGameInstance.h"
 #include "GameFramework/PlayerState.h"
+#include "Engine/World.h"
 #include "Runtime/Engine/Classes/Engine/LocalPlayer.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
@@ -13,10 +14,17 @@ UGEGameInstance::UGEGameInstance()
 
 	OnFindSessionsCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &UGEGameInstance::OnFindSessionsComplete);
 	OnJoinSessionCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &UGEGameInstance::OnJoinSessionComplete);
+
+	bHasSession = false;
 }
 
 void UGEGameInstance::CreateSession()
 {
+	if (bHasSession)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Already Has Sessions !!"));
+		return;
+	}
 	// Get the Online Subsystem to work with
 	OnlineSub = IOnlineSubsystem::Get();
 	if (OnlineSub)
@@ -36,7 +44,7 @@ void UGEGameInstance::CreateSession()
 		SessionSettings.bAllowJoinViaPresence = true;
 		SessionSettings.bAllowJoinViaPresenceFriendsOnly = false;
 
-		//SessionSettings.Set(SETTING_MAPNAME, FString(""), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+		SessionSettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		// Set the delegate to the Handle of the SessionInterface
 		OnCreateSessionCompleteDelegateHandle = Sessions->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
@@ -86,18 +94,20 @@ void UGEGameInstance::OnStartOnlineGameComplete(FName SessionName, bool bWasSucc
 	if (OnlineSub)
 	{
 		// Get the Session Interface to clear the Delegate
-		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+		Sessions = OnlineSub->GetSessionInterface();
 		if (Sessions.IsValid())
 		{
 			// Clear the delegate, since we are done with this call
 			Sessions->ClearOnStartSessionCompleteDelegate_Handle(OnStartSessionCompleteDelegateHandle);
 		}
+
 	}
 
 	// If the start was successful, we can open a NewMap if we want. Make sure to use "listen" as a parameter!
 	if (bWasSuccessful)
 	{
-		//UGameplayStatics::OpenLevel(GetWorld(), "MatchMakingSession", true, "listen");
+		UGameplayStatics::OpenLevel(GetWorld(), "MatchMakingMap", true, "listen");
+		bHasSession = true;
 	}
 }
 
@@ -134,7 +144,7 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 			if (bIsPresence)
 			{
 				SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, bIsPresence, EOnlineComparisonOp::Equals);
-				//SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString(""), EOnlineComparisonOp::Equals);
+				SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineComparisonOp::Equals);
 			}
 
 			TSharedRef<FOnlineSessionSearch> SearchSettingsRef = SessionSearch.ToSharedRef();

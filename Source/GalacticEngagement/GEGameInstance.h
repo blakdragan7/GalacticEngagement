@@ -36,6 +36,8 @@ private:
 
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
+	bool bHasSession;
+
 public:
 	UGEGameInstance();
 

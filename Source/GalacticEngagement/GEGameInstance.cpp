@@ -59,6 +59,14 @@ void UGEGameInstance::CreateSession()
 	}
 }
 
+void UGEGameInstance::StartMatch()
+{
+	if (bHasSession)
+	{
+		GetWorld()->ServerTravel("/Game/Maps/MultiPlayeyMelleeMap",true);
+	}
+}
+
 void UGEGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("OnCreateSessionComplete %s, %d"), *SessionName.ToString(), bWasSuccessful));
@@ -106,7 +114,7 @@ void UGEGameInstance::OnStartOnlineGameComplete(FName SessionName, bool bWasSucc
 	// If the start was successful, we can open a NewMap if we want. Make sure to use "listen" as a parameter!
 	if (bWasSuccessful)
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), "MatchMakingMap", true, "listen");
+		UGameplayStatics::OpenLevel(GetWorld(), "GELobbyShipYard", true, "listen");
 		bHasSession = true;
 	}
 }

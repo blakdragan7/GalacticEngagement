@@ -36,6 +36,7 @@ private:
 
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
+	UPROPERTY(Category = Session, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bHasSession;
 
 public:
@@ -46,6 +47,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StartFindSession();
+
+	UFUNCTION(BlueprintCallable)
+	void StartMatch();
 
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 	void OnStartOnlineGameComplete(FName SessionName, bool bWasSuccessful);

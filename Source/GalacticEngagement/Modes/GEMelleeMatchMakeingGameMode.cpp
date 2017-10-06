@@ -8,7 +8,6 @@ AGEMelleeMatchMakeingGameMode::AGEMelleeMatchMakeingGameMode()
 {
 	GameStateClass = AGEMelleeMatchMakingState::StaticClass();
 	PlayerControllerClass = AGEMatchMakingController::StaticClass();
-
 }
 
 void AGEMelleeMatchMakeingGameMode::BeginPlay()

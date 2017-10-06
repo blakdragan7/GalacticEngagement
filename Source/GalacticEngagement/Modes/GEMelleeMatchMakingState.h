@@ -25,9 +25,10 @@ public:
 	/** Remove PlayerState from the PlayerArray. */
 	virtual void RemovePlayerState(APlayerState* PlayerState)override;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Network Update")
-	void PlayerJoinedMatchMakingSession(const FString &Name);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Network Update")
-	void PlayerLeftMatchMakingSession(const FString &Name);
+		void PlayerJoinedMatchMakingSession(const FString &Name);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Network Update")
+		void PlayerLeftMatchMakingSession(const FString &Name);
 };

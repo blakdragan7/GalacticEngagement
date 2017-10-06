@@ -16,24 +16,8 @@ class GALACTICENGAGEMENT_API AGEMatchMakingController : public APlayerController
 	GENERATED_BODY()
 private:
 
-	FOnFindSessionsCompleteDelegate OnFindSessionsCompleteDelegate;
-	FDelegateHandle OnFindSessionsCompleteDelegateHandle;
-
-	FOnJoinSessionCompleteDelegate OnJoinSessionCompleteDelegate;
-	FDelegateHandle OnJoinSessionCompleteDelegateHandle;
-
-	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 public:
 	AGEMatchMakingController();
 	
 	virtual void BeginPlay()override;
-
-	UFUNCTION(BlueprintCallable)
-	void StartFindSession();
-
-	void FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool bIsLAN, bool bIsPresence);
-	bool JoinSession(TSharedPtr<const FUniqueNetId> UserId, FName SessionName, const FOnlineSessionSearchResult& SearchResult);
-
-	void OnFindSessionsComplete(bool bWasSuccessful);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 };

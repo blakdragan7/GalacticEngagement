@@ -44,13 +44,13 @@ void UGEGameInstance::CreateSession()
 		SessionSettings.bAllowJoinViaPresence = true;
 		SessionSettings.bAllowJoinViaPresenceFriendsOnly = false;
 
-		SessionSettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+		SessionSettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineDataAdvertisementType::ViaOnlineService);
 
 		// Set the delegate to the Handle of the SessionInterface
 		OnCreateSessionCompleteDelegateHandle = Sessions->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
 
 		// Our delegate should get called when this is complete (doesn't need to be successful!)
-		bool success = Sessions->CreateSession(10, FName("MatchMakingSession"), SessionSettings);
+		bool success = Sessions->CreateSession(*GetFirstGamePlayer()->GetPreferredUniqueNetId(), FName("MatchMakingSession"), SessionSettings);
 		if (success == false)UE_LOG(LogTemp, Warning, TEXT("Failed to create Session !!"))
 	}
 	else
@@ -137,16 +137,16 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 			SessionSearch = MakeShareable(new FOnlineSessionSearch());
 
 			SessionSearch->bIsLanQuery = bIsLAN;
-			SessionSearch->MaxSearchResults = 20000000;
+			SessionSearch->MaxSearchResults = 20000;
 			SessionSearch->PingBucketSize = 50;
 
 			// We only want to set this Query Setting if "bIsPresence" is true
 			if (bIsPresence)
 			{
 				SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, bIsPresence, EOnlineComparisonOp::Equals);
-				SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineComparisonOp::Equals);
 			}
 
+			SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineComparisonOp::Equals);
 			TSharedRef<FOnlineSessionSearch> SearchSettingsRef = SessionSearch.ToSharedRef();
 
 			// Set the Delegate to the Delegate Handle of the FindSession function

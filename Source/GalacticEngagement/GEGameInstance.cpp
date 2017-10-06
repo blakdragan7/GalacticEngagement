@@ -36,7 +36,7 @@ void UGEGameInstance::CreateSession()
 		SessionSettings.bAllowJoinViaPresence = true;
 		SessionSettings.bAllowJoinViaPresenceFriendsOnly = false;
 
-		SessionSettings.Set(SETTING_MAPNAME, FString(""), EOnlineDataAdvertisementType::ViaOnlineService);
+		//SessionSettings.Set(SETTING_MAPNAME, FString(""), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		// Set the delegate to the Handle of the SessionInterface
 		OnCreateSessionCompleteDelegateHandle = Sessions->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
@@ -105,7 +105,7 @@ void UGEGameInstance::StartFindSession()
 {
 	ULocalPlayer* const Player = GetFirstGamePlayer();
 
-	FindSessions(Player->GetPreferredUniqueNetId(), true, true);
+	FindSessions(Player->GetPreferredUniqueNetId(), true, false);
 }
 
 void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool bIsLAN, bool bIsPresence)
@@ -134,7 +134,7 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 			if (bIsPresence)
 			{
 				SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, bIsPresence, EOnlineComparisonOp::Equals);
-				SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString(""), EOnlineComparisonOp::Equals);
+				//SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString(""), EOnlineComparisonOp::Equals);
 			}
 
 			TSharedRef<FOnlineSessionSearch> SearchSettingsRef = SessionSearch.ToSharedRef();

@@ -2,6 +2,7 @@
 
 #include "GEGameInstance.h"
 #include "GameFramework/PlayerState.h"
+#include "Runtime/Engine/Classes/Engine/LocalPlayer.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 UGEGameInstance::UGEGameInstance()
@@ -133,7 +134,7 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 			if (bIsPresence)
 			{
 				SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, bIsPresence, EOnlineComparisonOp::Equals);
-				SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString("MatchMakingMap"), EOnlineComparisonOp::Equals);
+				SessionSearch->QuerySettings.Set(SETTING_MAPNAME, FString(""), EOnlineComparisonOp::Equals);
 			}
 
 			TSharedRef<FOnlineSessionSearch> SearchSettingsRef = SessionSearch.ToSharedRef();
@@ -152,7 +153,7 @@ void UGEGameInstance::FindSessions(TSharedPtr<const FUniqueNetId> UserId, bool b
 	}
 }
 
-bool UGEGameInstance::JoinSession(TSharedPtr<const FUniqueNetId> UserId, FName SessionName, const FOnlineSessionSearchResult& SearchResult)
+bool UGEGameInstance::JoinSession(ULocalPlayer * LocalPlayer, const FOnlineSessionSearchResult & SearchResult)
 {
 	// Return bool
 	bool bSuccessful = false;
@@ -165,14 +166,14 @@ bool UGEGameInstance::JoinSession(TSharedPtr<const FUniqueNetId> UserId, FName S
 		// Get SessionInterface from the OnlineSubsystem
 		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
 
-		if (Sessions.IsValid() && UserId.IsValid())
+		if (Sessions.IsValid() && IsValid(LocalPlayer))
 		{
 			// Set the Handle again
 			OnJoinSessionCompleteDelegateHandle = Sessions->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
 
 			// Call the "JoinSession" Function with the passed "SearchResult". The "SessionSearch->SearchResults" can be used to get such a
 			// "FOnlineSessionSearchResult" and pass it. Pretty straight forward!
-			bSuccessful = Sessions->JoinSession(*UserId, SessionName, SearchResult);
+			bSuccessful = Sessions->JoinSession(LocalPlayer->GetUniqueID(), "MatchMakingSession", SearchResult);
 		}
 	}
 

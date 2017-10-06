@@ -10,6 +10,7 @@ AGalacticEngagementGameModeBase::AGalacticEngagementGameModeBase()
 {
 	DefaultPawnClass = AGEBaseShip::StaticClass();
 	PlayerControllerClass = AGEMeleePlayerController::StaticClass();
+	bUseSeamlessTravel = true;
 }
 
 void AGalacticEngagementGameModeBase::BeginPlay()

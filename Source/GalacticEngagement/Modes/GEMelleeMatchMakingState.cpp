@@ -10,10 +10,12 @@ AGEMelleeMatchMakingState::AGEMelleeMatchMakingState()
 
 void AGEMelleeMatchMakingState::AddPlayerState(APlayerState* PlayerState)
 {
+	Super::AddPlayerState(PlayerState);
 	PlayerJoinedMatchMakingSession(PlayerState->PlayerName);
 }
 
 void AGEMelleeMatchMakingState::RemovePlayerState(APlayerState* PlayerState)
 {
+	Super::RemovePlayerState(PlayerState);
 	PlayerLeftMatchMakingSession(PlayerState->PlayerName);
 }

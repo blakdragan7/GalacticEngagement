@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Math/BackgroundPlane.h"
+#include "Misc/CustomShipSave.h"
 #include "GameFramework/PlayerController.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "GEMeleePlayerController.generated.h"
@@ -18,6 +19,9 @@ class GALACTICENGAGEMENT_API AGEMeleePlayerController : public APlayerController
 private:
 	TArray<FBackgroundPlane*> BackgroundPlanes;
 	bool BeganStarField;
+	bool HasSpawnedShip;
+
+	FTimerHandle Timer;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Environment)
@@ -35,8 +39,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void BeginPlay()override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void BeginDestroy();
+	virtual void BeginDestroy()override;
 
-	UFUNCTION(BlueprintCallable,Category=Background)
-	void BeginStarField();
+	UFUNCTION(BlueprintCallable, Category = Background, Client, Reliable)
+	void ClientBeginStarField();
+
+	UFUNCTION()
+	void LoadCustomShipData();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void RequestSpawnShip(struct FNetComponentSaveStruct ShipSave);
 };

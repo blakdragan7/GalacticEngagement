@@ -18,6 +18,12 @@ private:
 
 public:
 	AGEMatchMakingController();
-	
+
 	virtual void BeginPlay()override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiNewPlayerLogin();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UINeedsUpdate();
 };

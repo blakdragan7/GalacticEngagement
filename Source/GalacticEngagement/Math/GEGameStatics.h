@@ -7,7 +7,7 @@
 /**
  * 
  */
-class GALACTICENGAGEMENT_API GEGameStatistics
+class GALACTICENGAGEMENT_API GEGameStatics
 {
 public:
 	static bool VectorLessThenVector(FVector &v1, FVector &v2, float tolerance = 0.00001);
@@ -22,4 +22,5 @@ public:
 	static FMatrix RotationMatrix(FVector &center, FVector &eye, FVector &up);
 	static FQuat QuatFromDirAndUp(FVector &center, FVector &eye, FVector &up);
 	static FRotator RotatorFromDirAndUp(FVector &center, FVector &eye, FVector &up);
+	static bool PopulateShipFromNetStruct(class AGEBaseShip* ship,struct FNetComponentSaveStruct &netStr);
 };

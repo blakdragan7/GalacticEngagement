@@ -20,5 +20,15 @@ void AGEMelleeMatchMakeingGameMode::BeginPlay()
 void AGEMelleeMatchMakeingGameMode::PostLogin(APlayerController * NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Player Logged In ! %i"), NewPlayer->GetLocalPlayer()->GetUniqueID()));
+	AllControllers.AddUnique(NewPlayer);
+	if (AGEMatchMakingController* mmController = Cast<AGEMatchMakingController>(NewPlayer))
+	{
+		mmController->MultiNewPlayerLogin();
+	}
+}
+
+void AGEMelleeMatchMakeingGameMode::Logout(AController * controller)
+{
+	Super::Logout(controller);
+	AllControllers.Remove(controller);
 }

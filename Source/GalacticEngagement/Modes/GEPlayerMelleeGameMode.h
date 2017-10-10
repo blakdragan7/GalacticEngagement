@@ -4,23 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "GEMelleeMatchMakeingGameMode.generated.h"
+#include "GEPlayerMelleeGameMode.generated.h"
 
 /**
  * 
  */
-UCLASS(Blueprintable)
-class GALACTICENGAGEMENT_API AGEMelleeMatchMakeingGameMode : public AGameModeBase
+UCLASS()
+class GALACTICENGAGEMENT_API AGEPlayerMelleeGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
 private:
 	UPROPERTY(Category = Session, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<AController*> AllControllers;
 
 public:
-	AGEMelleeMatchMakeingGameMode();
+	AGEPlayerMelleeGameMode();
 
-	virtual void BeginPlay()override;
+	void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)override;
+
 	virtual void PostLogin(APlayerController* NewPlayer)override;
 	virtual void Logout(AController* controller) override;
+	void SpawnPlayer(AController* requestnigController,struct FNetComponentSaveStruct& shipSave);
 };

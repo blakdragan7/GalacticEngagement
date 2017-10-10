@@ -88,3 +88,17 @@ void UCustomShipSave::PopulateShip(AGEBaseShip * ship)
 		}
 	}
 }
+
+bool FComponentSaveStruct::NetSerialize(FArchive & Ar, UPackageMap * Map, bool & bOutSuccess)
+{
+	Ar << *this;
+	bOutSuccess = true;
+	return true;
+}
+
+bool FNetComponentSaveStruct::NetSerialize(FArchive & Ar, UPackageMap * Map, bool & bOutSuccess)
+{
+	Ar << *this;
+	bOutSuccess = true;
+	return true;
+}

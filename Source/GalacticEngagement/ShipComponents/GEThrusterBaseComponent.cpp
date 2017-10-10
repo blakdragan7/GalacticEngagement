@@ -3,7 +3,7 @@
 #include "GEThrusterBaseComponent.h"
 #include "GEBaseShip.h"
 #include "Interfaces/GEVelocityEffector.h"
-#include "Math/GEGameStatistics.h"
+#include "Math/GEGameStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
@@ -129,12 +129,12 @@ void UGEThrusterBaseComponent::UpdateMovementRates(FVector Direction, float Delt
 	if (IsAccelerating)
 	{
 		FVector DesiredVelocity = CurrentVelocity + (Direction* MaxAccel * DeltaTime);
-		if (GEGameStatistics::VectorLessThenVector(DesiredVelocity, CurrentVelocity))
+		if (GEGameStatics::VectorLessThenVector(DesiredVelocity, CurrentVelocity))
 		{
 			CurrentVelocity = DesiredVelocity;
 			//if (GEngine)GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Less Then Current Velocity"));
 		}
-		else if (GEGameStatistics::VectorLessThenMagnitude(DesiredVelocity, MaxSpeed))
+		else if (GEGameStatics::VectorLessThenMagnitude(DesiredVelocity, MaxSpeed))
 		{
 			CurrentVelocity = DesiredVelocity;
 			//if(GEngine)GEngine->AddOnScreenDebugMessage(1,1.0f,FColor::Yellow,TEXT("Less Then Max Speed"));
@@ -153,7 +153,7 @@ void UGEThrusterBaseComponent::UpdateMovementRates(FVector Direction, float Delt
 		CurrentRotationRate = FMath::Min<float>(CurrentRotationRate, MaxRotationRate);
 	}
 
-	Thrusting(GEGameStatistics::VectorPercentageOfMag(CurrentVelocity,MaxSpeed));
+	Thrusting(GEGameStatics::VectorPercentageOfMag(CurrentVelocity,MaxSpeed));
 }
 
 void UGEThrusterBaseComponent::StopMoving()

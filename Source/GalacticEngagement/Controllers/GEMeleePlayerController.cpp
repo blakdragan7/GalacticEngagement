@@ -8,7 +8,9 @@
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Runtime/Engine/Classes/Engine/LocalPlayer.h"
 #include "Runtime/Engine/Public/SceneView.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "Modes/GEPlayerMelleeGameMode.h"
 #include "Math/BackgroundPlane.h"
 #include "Engine.h"
 
@@ -16,6 +18,7 @@ AGEMeleePlayerController::AGEMeleePlayerController()
 {
 	bShowMouseCursor = true;
 	BeganStarField = false;
+	HasSpawnedShip = false;
 }
 
 void AGEMeleePlayerController::Tick(float DeltaTime)
@@ -26,6 +29,7 @@ void AGEMeleePlayerController::Tick(float DeltaTime)
 
 void AGEMeleePlayerController::BeginPlay()
 {
+	GetWorld()->GetTimerManager().SetTimer(Timer, this, &AGEMeleePlayerController::LoadCustomShipData, 1.0, false);
 }
 
 void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
@@ -76,7 +80,7 @@ void AGEMeleePlayerController::BeginDestroy()
 	BackgroundPlanes.Empty();
 }
 
-void AGEMeleePlayerController::BeginStarField()
+void AGEMeleePlayerController::ClientBeginStarField_Implementation()
 {
 	BeganStarField = true;
 
@@ -119,5 +123,40 @@ void AGEMeleePlayerController::UpdatePlanes()
 				plane->UpdateActors();
 			}
 		}
+	}
+}
+
+
+void AGEMeleePlayerController::LoadCustomShipData()
+{
+	if (USaveGame* saveGame = UGameplayStatics::LoadGameFromSlot("CustomShip", 0))
+	{
+		if (UCustomShipSave* shipSave = Cast<UCustomShipSave>(saveGame))
+		{
+			FNetComponentSaveStruct netStruct;
+
+			netStruct.EngineClass = shipSave->EngineClass;
+			netStruct.ThrusterClass = shipSave->ThrusterClass;
+			netStruct.ShipClass = shipSave->ShipClass;
+
+			netStruct.PrimaryGunClasses = shipSave->PrimaryGunClasses;
+			netStruct.SecondayGunClasses = shipSave->SecondayGunClasses;
+
+			RequestSpawnShip(netStruct);
+		}
+	}
+}
+
+bool AGEMeleePlayerController::RequestSpawnShip_Validate(struct FNetComponentSaveStruct ShipSave)
+{
+	return HasSpawnedShip == false;
+}
+
+void AGEMeleePlayerController::RequestSpawnShip_Implementation(struct FNetComponentSaveStruct ShipSave)
+{
+	if (AGEPlayerMelleeGameMode* gameMode = Cast<AGEPlayerMelleeGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		HasSpawnedShip = true;
+		gameMode->SpawnPlayer(this, ShipSave);
 	}
 }

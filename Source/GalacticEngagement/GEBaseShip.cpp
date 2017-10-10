@@ -7,7 +7,7 @@
 #include "ShipComponents/GEEngineBaseComponent.h"
 #include "ShipComponents/GEThrusterBaseComponent.h"
 #include "ShipComponents/ComponentMountPoint.h"
-#include "Math/GEGameStatistics.h"
+#include "Math/GEGameStatics.h"
 #include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
 #include "Net/UnrealNetwork.h"
@@ -229,6 +229,7 @@ void AGEBaseShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if(PlayerController == NULL)PlayerController = Cast<APlayerController>(GetController());
 	UpdateInputs();
 	UpdateCameraPosition();
 	if (bIsMultiplayer) { if (FireGunToggle)Server_FireSelectedGun(); } // Up to Individual Guns to Limit Fire rate
@@ -389,7 +390,7 @@ bool AGEBaseShip::SetLocation(const FVector & NewLocation, bool bSweep, FHitResu
 		FVector Origin, Extents;
 		GetActorBounds(true, Origin, Extents);
 		FVector currentLocation = GetActorLocation();
-		if (GetWorld()->SweepSingleByChannel(OutSweepHitResult, currentLocation, NewLocation, FQuat(), ECollisionChannel::ECC_WorldDynamic, FCollisionShape::MakeSphere(GEGameStatistics::MaxVectorComponent(Extents)), TraceParams))
+		if (GetWorld()->SweepSingleByChannel(OutSweepHitResult, currentLocation, NewLocation, FQuat(), ECollisionChannel::ECC_WorldDynamic, FCollisionShape::MakeSphere(GEGameStatics::MaxVectorComponent(Extents)), TraceParams))
 		{
 			MultiCast_SetLocation(OutSweepHitResult.Location + OutSweepHitResult.ImpactNormal * 10);
 			return false;

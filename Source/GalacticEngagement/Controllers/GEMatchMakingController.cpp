@@ -12,8 +12,9 @@ AGEMatchMakingController::AGEMatchMakingController()
 
 void AGEMatchMakingController::BeginPlay()
 {
-	if (Role != ROLE_Authority)
-	{
-		
-	}
+}
+
+void AGEMatchMakingController::MultiNewPlayerLogin_Implementation()
+{
+	UINeedsUpdate();
 }

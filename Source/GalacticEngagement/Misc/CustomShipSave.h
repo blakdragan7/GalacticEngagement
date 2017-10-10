@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/SaveGame.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
+#include "GameFramework/SaveGame.h"
 #include "ShipComponents/ShipComponentBase.h"
 #include "CustomShipSave.generated.h"
 
@@ -17,6 +17,42 @@ public:
 	TSubclassOf<UShipComponentBase> componentClass;
 	UPROPERTY(BlueprintReadWrite)
 	int32 index;
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+};
+
+USTRUCT(BlueprintType)
+struct FNetComponentSaveStruct
+{
+	GENERATED_BODY()
+public:
+	TArray<FComponentSaveStruct> PrimaryGunClasses;
+	TArray<FComponentSaveStruct> SecondayGunClasses;
+
+	FComponentSaveStruct EngineClass;
+	FComponentSaveStruct ThrusterClass;
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+
+	TSubclassOf<class AGEBaseShip> ShipClass;
+};
+
+template<>
+struct TStructOpsTypeTraits<FNetComponentSaveStruct> : public TStructOpsTypeTraitsBase2<FNetComponentSaveStruct>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
+};
+
+template<>
+struct TStructOpsTypeTraits<FComponentSaveStruct> : public TStructOpsTypeTraitsBase2<FComponentSaveStruct>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
 };
 
 /**
@@ -52,6 +88,26 @@ FORCEINLINE FArchive &operator <<(FArchive &Ar, FComponentSaveStruct& TheStruct)
 {
 	Ar << TheStruct.componentClass;
 	Ar << TheStruct.index;
+
+	return Ar;
+}
+
+FORCEINLINE FArchive &operator <<(FArchive &Ar, FNetComponentSaveStruct& TheStruct)
+{
+	Ar << TheStruct.EngineClass;
+	Ar << TheStruct.ThrusterClass;
+	Ar << TheStruct.ShipClass;
+
+	for (auto str : TheStruct.PrimaryGunClasses)
+	{
+		Ar << str;
+	}
+
+	for (auto str : TheStruct.SecondayGunClasses)
+	{
+		Ar << str;
+	}
+
 
 	return Ar;
 }

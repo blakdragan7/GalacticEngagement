@@ -63,7 +63,7 @@ void UGEGameInstance::StartMatch()
 {
 	if (bHasSession)
 	{
-		GetWorld()->ServerTravel("/Game/Maps/MultiPlayeyMelleeMap",true);
+		GetWorld()->ServerTravel("/Game/Maps/MultiPlayeyMelleeMap",false);
 	}
 }
 

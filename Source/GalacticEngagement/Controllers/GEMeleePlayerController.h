@@ -19,9 +19,6 @@ class GALACTICENGAGEMENT_API AGEMeleePlayerController : public APlayerController
 private:
 	TArray<FBackgroundPlane*> BackgroundPlanes;
 	bool BeganStarField;
-	bool HasSpawnedShip;
-
-	FTimerHandle Timer;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Environment)

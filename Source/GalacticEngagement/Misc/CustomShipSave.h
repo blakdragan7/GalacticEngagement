@@ -26,24 +26,21 @@ struct FNetComponentSaveStruct
 {
 	GENERATED_BODY()
 public:
+	
+	UPROPERTY()
 	TArray<FComponentSaveStruct> PrimaryGunClasses;
+	UPROPERTY()
 	TArray<FComponentSaveStruct> SecondayGunClasses;
 
+	UPROPERTY()
 	FComponentSaveStruct EngineClass;
+	UPROPERTY()
 	FComponentSaveStruct ThrusterClass;
 
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+	//bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 
+	UPROPERTY()
 	TSubclassOf<class AGEBaseShip> ShipClass;
-};
-
-template<>
-struct TStructOpsTypeTraits<FNetComponentSaveStruct> : public TStructOpsTypeTraitsBase2<FNetComponentSaveStruct>
-{
-	enum
-	{
-		WithNetSerializer = true
-	};
 };
 
 template<>
@@ -88,26 +85,6 @@ FORCEINLINE FArchive &operator <<(FArchive &Ar, FComponentSaveStruct& TheStruct)
 {
 	Ar << TheStruct.componentClass;
 	Ar << TheStruct.index;
-
-	return Ar;
-}
-
-FORCEINLINE FArchive &operator <<(FArchive &Ar, FNetComponentSaveStruct& TheStruct)
-{
-	Ar << TheStruct.EngineClass;
-	Ar << TheStruct.ThrusterClass;
-	Ar << TheStruct.ShipClass;
-
-	for (auto str : TheStruct.PrimaryGunClasses)
-	{
-		Ar << str;
-	}
-
-	for (auto str : TheStruct.SecondayGunClasses)
-	{
-		Ar << str;
-	}
-
 
 	return Ar;
 }

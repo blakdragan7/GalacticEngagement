@@ -30,4 +30,9 @@ public:
 	FORCEINLINE void SetModel(UStaticMesh* model) { ComponentModel = model; }
 
 	bool AssignToMountPoint(class UComponentMountPoint* MountePoint);
+
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

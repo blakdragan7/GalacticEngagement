@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GEGestureHandler.h"
 #include "GameFramework/Pawn.h"
+#include "Misc/CustomShipSave.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "ShipComponents/ShipComponentTypes.h"
 #include "Interfaces/GEDamageInterface.h"
@@ -84,7 +85,7 @@ public:
 	void ResetToNormalCameraDistance(); // Resets cmaera from max distance, if called without a previous call to SetToMaxCaemraDistance sets the camera to smallest distance
 
 public:
-	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly, Replicated)
+	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 CurrentHealth;
 	UPROPERTY(Category = "Ship Stats", VisibleAnywhere, BlueprintReadOnly)
 	int32 MaxHealth;
@@ -200,6 +201,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Ship Stats")
 	float GetHealthPercentage();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCast_UpdateComponents(FNetComponentSaveStruct saveStruct);
 
 	/** AI Functions */
 	void MoveTo(AActor* Actor);

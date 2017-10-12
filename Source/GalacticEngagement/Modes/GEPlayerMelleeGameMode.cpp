@@ -51,6 +51,7 @@ void AGEPlayerMelleeGameMode::SpawnPlayer(AController* requestnigController, str
 		GEGameStatics::PopulateShipFromNetStruct(ship, shipSave);
 
 		requestnigController->Possess(ship);
+		ship->MultiCast_UpdateComponents(shipSave);
 		if (AGEMeleePlayerController* MPC = Cast<AGEMeleePlayerController>(requestnigController))
 		{
 			MPC->ClientBeginStarField();

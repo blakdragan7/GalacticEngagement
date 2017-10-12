@@ -18,7 +18,6 @@ AGEMeleePlayerController::AGEMeleePlayerController()
 {
 	bShowMouseCursor = true;
 	BeganStarField = false;
-	HasSpawnedShip = false;
 }
 
 void AGEMeleePlayerController::Tick(float DeltaTime)
@@ -29,7 +28,7 @@ void AGEMeleePlayerController::Tick(float DeltaTime)
 
 void AGEMeleePlayerController::BeginPlay()
 {
-	GetWorld()->GetTimerManager().SetTimer(Timer, this, &AGEMeleePlayerController::LoadCustomShipData, 1.0, false);
+	LoadCustomShipData();
 }
 
 void AGEMeleePlayerController::OnConstruction(const FTransform & Transform)
@@ -149,14 +148,13 @@ void AGEMeleePlayerController::LoadCustomShipData()
 
 bool AGEMeleePlayerController::RequestSpawnShip_Validate(struct FNetComponentSaveStruct ShipSave)
 {
-	return HasSpawnedShip == false;
+	return true;
 }
 
 void AGEMeleePlayerController::RequestSpawnShip_Implementation(struct FNetComponentSaveStruct ShipSave)
 {
 	if (AGEPlayerMelleeGameMode* gameMode = Cast<AGEPlayerMelleeGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		HasSpawnedShip = true;
 		gameMode->SpawnPlayer(this, ShipSave);
 	}
 }

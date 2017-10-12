@@ -64,7 +64,7 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterMount->SetupAttachment(ShipBody);
 	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
 	ThrusterMount->index = 1;
-	ThrusterMount->SetIsReplicated(true);
+	//ThrusterMount->SetIsReplicated(true);
 
 	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
 	EngineMount->SetupAttachment(ShipBody);
@@ -290,6 +290,11 @@ void AGEBaseShip::ReceiveDamage(int32 Damage, FVector DamageLocation)
 int32 AGEBaseShip::GetHealth()
 {
 	return CurrentHealth;
+}
+
+void AGEBaseShip::MultiCast_UpdateComponents_Implementation(FNetComponentSaveStruct saveStruct)
+{
+	GEGameStatics::PopulateShipFromNetStruct(this, saveStruct);
 }
 
 void AGEBaseShip::UpdateCameraPosition()
@@ -559,11 +564,11 @@ void AGEBaseShip::InvalidateTarget()
 	}
 }
 
-void AGEBaseShip::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+/*void AGEBaseShip::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AGEBaseShip, CurrentHealth);
-}
+	//DOREPLIFETIME(AGEBaseShip, CurrentHealth);
+}*/
 
 bool AGEBaseShip::ShouldFireGun()
 {

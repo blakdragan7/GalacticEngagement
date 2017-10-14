@@ -64,7 +64,7 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterMount->SetupAttachment(ShipBody);
 	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
 	ThrusterMount->index = 1;
-	//ThrusterMount->SetIsReplicated(true);
+	ThrusterMount->SetIsReplicated(true);
 
 	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
 	EngineMount->SetupAttachment(ShipBody);

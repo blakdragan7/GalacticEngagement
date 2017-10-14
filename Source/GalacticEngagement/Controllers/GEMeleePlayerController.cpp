@@ -128,20 +128,23 @@ void AGEMeleePlayerController::UpdatePlanes()
 
 void AGEMeleePlayerController::LoadCustomShipData()
 {
-	if (USaveGame* saveGame = UGameplayStatics::LoadGameFromSlot("CustomShip", 0))
+	if (IsLocalPlayerController())
 	{
-		if (UCustomShipSave* shipSave = Cast<UCustomShipSave>(saveGame))
+		if (USaveGame* saveGame = UGameplayStatics::LoadGameFromSlot("CustomShip", 0))
 		{
-			FNetComponentSaveStruct netStruct;
+			if (UCustomShipSave* shipSave = Cast<UCustomShipSave>(saveGame))
+			{
+				FNetComponentSaveStruct netStruct;
 
-			netStruct.EngineClass = shipSave->EngineClass;
-			netStruct.ThrusterClass = shipSave->ThrusterClass;
-			netStruct.ShipClass = shipSave->ShipClass;
+				netStruct.EngineClass = shipSave->EngineClass;
+				netStruct.ThrusterClass = shipSave->ThrusterClass;
+				netStruct.ShipClass = shipSave->ShipClass;
 
-			netStruct.PrimaryGunClasses = shipSave->PrimaryGunClasses;
-			netStruct.SecondayGunClasses = shipSave->SecondayGunClasses;
+				netStruct.PrimaryGunClasses = shipSave->PrimaryGunClasses;
+				netStruct.SecondayGunClasses = shipSave->SecondayGunClasses;
 
-			RequestSpawnShip(netStruct);
+				RequestSpawnShip(netStruct);
+			}
 		}
 	}
 }

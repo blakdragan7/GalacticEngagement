@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "Modes/GEMelleGameModeBase.h"
 #include "GEPlayerMelleeGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GALACTICENGAGEMENT_API AGEPlayerMelleeGameMode : public AGameModeBase
+class GALACTICENGAGEMENT_API AGEPlayerMelleeGameMode : public AGEMelleGameModeBase
 {
 	GENERATED_BODY()
 

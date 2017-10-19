@@ -23,7 +23,6 @@ UComponentMountPoint::UComponentMountPoint()
 	AssignedComponent = 0;
 	index = -1;
 
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Engine/BasicShapes/Cube.Cube'"));
 	if (StaticMeshCube.Object)SetStaticMesh(StaticMeshCube.Object);
 }

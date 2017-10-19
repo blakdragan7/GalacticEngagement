@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Math/BackgroundPlane.h"
 #include "Misc/CustomShipSave.h"
-#include "GameFramework/PlayerController.h"
+#include "GEMelleePlayerControllerBase.h"
 #include "Runtime/CoreUObject/Public/Templates/SubclassOf.h"
 #include "GEMeleePlayerController.generated.h"
 
@@ -13,7 +13,7 @@
  * 
  */
 UCLASS()
-class GALACTICENGAGEMENT_API AGEMeleePlayerController : public APlayerController
+class GALACTICENGAGEMENT_API AGEMeleePlayerController : public AGEMelleePlayerControllerBase
 {
 	GENERATED_BODY()
 private:

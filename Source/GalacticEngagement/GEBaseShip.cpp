@@ -8,6 +8,8 @@
 #include "ShipComponents/GEThrusterBaseComponent.h"
 #include "ShipComponents/ComponentMountPoint.h"
 #include "Math/GEGameStatics.h"
+#include "Modes/GEMelleGameModeBase.h"
+#include "Controllers/GEMelleePlayerControllerBase.h"
 #include "AI/GEBaseEnemyAIController.h"
 #include "DrawDebugHelpers.h"
 #include "Net/UnrealNetwork.h"
@@ -140,26 +142,26 @@ void AGEBaseShip::ResetToNormalCameraDistance()
 	}
 }
 
-bool AGEBaseShip::Server_ReceiveDamage_Validate(int32 Damage, FVector DamageLocation)
+bool AGEBaseShip::Server_ReceiveDamage_Validate(AGEBaseShip* attacker, int32 Damage, FVector DamageLocation)
 {
 	return true;
 }
 
-void AGEBaseShip::Server_ReceiveDamage_Implementation(int32 Damage, FVector DamageLocation)
+void AGEBaseShip::Server_ReceiveDamage_Implementation(AGEBaseShip* attacker, int32 Damage, FVector DamageLocation)
 {
 	CurrentHealth -= Damage;
 	
 	if (CurrentHealth <= 0)
 	{
 		ShipDestroyed();
-		OnShipDeath();
+		OnShipDeath(attacker);
 	}
 
-	MultiCast_ReceiveDamage(Damage,DamageLocation);
+	MultiCast_ReceiveDamage(attacker,Damage,DamageLocation);
 
 }
 
-void AGEBaseShip::MultiCast_ReceiveDamage_Implementation(int32 Damage, FVector DamageLocation)
+void AGEBaseShip::MultiCast_ReceiveDamage_Implementation(AGEBaseShip* attacker, int32 Damage, FVector DamageLocation)
 {
 	AGEDamageIndicator::SpawnIndicatorWithDamageAndDuration(this, DamageLocation, 0.25, FString::FromInt(Damage));
 }
@@ -241,9 +243,9 @@ void AGEBaseShip::Tick(float DeltaTime)
 
 void AGEBaseShip::UpdateInputs()
 {
-	//if (Role != ROLE_Authority)
+	if(PlayerController)
 	{
-		if(PlayerController)
+		if (PlayerController->IsLocalPlayerController())
 		{
 			float targetX, targetY;
 			bool isCurrentlyPressed;
@@ -263,9 +265,9 @@ void AGEBaseShip::UpdateInputs()
 			}
 
 			if (GestureHandler)GestureHandler->Tick(0, targetX, targetY);
-
 		}
 	}
+	
 }
 
 // Called to bind functionality to input
@@ -281,10 +283,11 @@ void AGEBaseShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	InputComponent->BindAction("MainFire", IE_Pressed, this, &AGEBaseShip::FireGunDownMapping);
 }
 
-void AGEBaseShip::ReceiveDamage(int32 Damage, FVector DamageLocation)
+void AGEBaseShip::ReceiveDamage(AActor* attacker, int32 Damage, FVector DamageLocation)
 {
-	if (bIsMultiplayer)Server_ReceiveDamage(Damage, DamageLocation);
-	else Server_ReceiveDamage_Implementation(Damage, DamageLocation);
+	AGEBaseShip* attacker_ship = Cast<AGEBaseShip>(attacker);
+	if (bIsMultiplayer)Server_ReceiveDamage(attacker_ship,Damage, DamageLocation);
+	else Server_ReceiveDamage_Implementation(attacker_ship,Damage, DamageLocation);
 }
 
 int32 AGEBaseShip::GetHealth()
@@ -440,8 +443,18 @@ void AGEBaseShip::FireSelectedGun()
 	}
 }
 
-void AGEBaseShip::OnShipDeath()
+void AGEBaseShip::OnShipDeath(AGEBaseShip* attacker)
 {
+	if (AGEMelleGameModeBase* gameMode = Cast<AGEMelleGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		if (AGEMelleePlayerControllerBase* controller = Cast<AGEMelleePlayerControllerBase>(GetController()))
+		{
+			AGEMelleePlayerControllerBase* AttackerController = NULL;
+			if(attacker)AttackerController = Cast<AGEMelleePlayerControllerBase>(attacker->GetController());
+			
+			gameMode->PlayerControllerDestroyedController(AttackerController, controller);
+		}
+	}
 	Destroy();
 }
 

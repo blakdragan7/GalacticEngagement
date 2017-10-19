@@ -15,6 +15,8 @@ UGEGameInstance::UGEGameInstance()
 	OnFindSessionsCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &UGEGameInstance::OnFindSessionsComplete);
 	OnJoinSessionCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &UGEGameInstance::OnJoinSessionComplete);
 
+	OnDestroySessionCompleteDelegate = FOnDestroySessionCompleteDelegate::CreateUObject(this, &UGEGameInstance::OnDestroySessionComplete);
+
 	bHasSession = false;
 }
 
@@ -64,6 +66,18 @@ void UGEGameInstance::StartMatch()
 	if (bHasSession)
 	{
 		GetWorld()->ServerTravel("/Game/Maps/MultiPlayeyMelleeMap",false);
+	}
+}
+
+void UGEGameInstance::EndMatch()
+{
+	IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+
+	if (Sessions.IsValid())
+	{
+		Sessions->EndSession(FName("MatchMakingSession"));
+		bool ret = Sessions->DestroySession(FName("MatchMakingSession"), OnDestroySessionCompleteDelegate);
+		UE_LOG(LogTemp,Warning,TEXT("did start Destroy Session %i"),(int)ret);
 	}
 }
 
@@ -259,6 +273,31 @@ void UGEGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCom
 				// Finally call the ClienTravel. If you want, you could print the TravelURL to see
 				// how it really looks like
 				PlayerController->ClientTravel(TravelURL, ETravelType::TRAVEL_Absolute);
+			}
+		}
+	}
+}
+
+void UGEGameInstance::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("OnDestroySessionComplete %s, %d"), *SessionName.ToString(), bWasSuccessful));
+
+	// Get the OnlineSubsystem we want to work with
+	IOnlineSubsystem* OnlineSub = IOnlineSubsystem::Get();
+	if (OnlineSub)
+	{
+		// Get the SessionInterface from the OnlineSubsystem
+		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+
+		if (Sessions.IsValid())
+		{
+			// Clear the Delegate
+			Sessions->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegateHandle);
+
+			// If it was successful, we just load another level (could be a MainMenu!)
+			if (bWasSuccessful)
+			{
+				UGameplayStatics::OpenLevel(GetWorld(), "GEMainMenu", true);
 			}
 		}
 	}

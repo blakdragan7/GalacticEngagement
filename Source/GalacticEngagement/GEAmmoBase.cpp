@@ -103,7 +103,7 @@ void AGEAmmoBase::OnComponentOverlapBegin(UPrimitiveComponent* OverlappedCompone
 		{
 			if (IGEDamageInterface* damageInterface = Cast<IGEDamageInterface>(OtherActor))
 			{
-				damageInterface->ReceiveDamage(CurrentDamage, OtherComp->GetComponentLocation());
+				damageInterface->ReceiveDamage(ignoredActor,CurrentDamage, OtherComp->GetComponentLocation());
 				Destroy();
 			}
 		}

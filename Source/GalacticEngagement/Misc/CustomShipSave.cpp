@@ -48,6 +48,11 @@ void UCustomShipSave::PopulateFromShip(class AGEBaseShip* ship)
 
 void UCustomShipSave::PopulateShip(AGEBaseShip * ship)
 {
+	if (IsValid(ship) == false)
+	{
+		UE_LOG(LogTemp,Error,TEXT("Trying To Populate Invalid Ship !"));
+		return;
+	}
 	if (EngineClass.componentClass)
 	{
 		ship->EngineMount->AssignShipComponent(EngineClass.componentClass);

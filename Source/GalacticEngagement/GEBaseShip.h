@@ -116,10 +116,10 @@ public:
 	/* Network Functions */
 
 	UFUNCTION(Server, WithValidation, Reliable)
-	void Server_ReceiveDamage(int32 Damage, FVector DamageLocation);
+	void Server_ReceiveDamage(AGEBaseShip* attacker,int32 Damage, FVector DamageLocation);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCast_ReceiveDamage(int32 Damage, FVector DamageLocation);
+	void MultiCast_ReceiveDamage(AGEBaseShip* attacker, int32 Damage, FVector DamageLocation);
 
 	UFUNCTION(Server, WithValidation, Reliable)
 	virtual void Server_SetLocation(const FVector& NewLocation); 
@@ -142,7 +142,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	/** Damage Interface */
-	virtual void ReceiveDamage(int32 Damage, FVector DamageLocation) override;
+	virtual void ReceiveDamage(AActor* attacker,int32 Damage, FVector DamageLocation) override;
 	virtual int32 GetHealth() override;
 	/** End Damage Interface*/
 	// Called to bind functionality to input
@@ -164,7 +164,7 @@ public:
 	void FireGunReleaseMapping();
 	virtual bool SetLocation(const FVector& NewLocation, bool bSweep, FHitResult& OutSweepHitResult); // Work around for root component being a scene component
 	virtual void FireSelectedGun();
-	virtual void OnShipDeath();
+	virtual void OnShipDeath(AGEBaseShip* attacker);
 	virtual void WasTargetBy(AGEBaseShip* aggresser);
 
 	/* Returns Closest Mount To Screen Point within range Or Null if none */

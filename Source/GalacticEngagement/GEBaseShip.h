@@ -110,10 +110,16 @@ public:
 	UPROPERTY(Category = Mounts, EditAnywhere, BlueprintReadWrite)
 	TArray<class UComponentMountPoint*> SecondaryGunComponents;
 
+	UPROPERTY(Category = "Ship Config", VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_SetComponentSaveStruct)
+	FNetComponentSaveStruct ComponentSaveStruct;
+
 	UPROPERTY(Category = Multiplayer, EditAnywhere, BlueprintReadWrite)
 	bool bIsMultiplayer;
 
 	/* Network Functions */
+
+	UFUNCTION()
+	virtual void OnRep_SetComponentSaveStruct();
 
 	UFUNCTION(Server, WithValidation, Reliable)
 	void Server_ReceiveDamage(AGEBaseShip* attacker,int32 Damage, FVector DamageLocation);
@@ -201,9 +207,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Ship Stats")
 	float GetHealthPercentage();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiCast_UpdateComponents(FNetComponentSaveStruct saveStruct);
 
 	/** AI Functions */
 	void MoveTo(AActor* Actor);

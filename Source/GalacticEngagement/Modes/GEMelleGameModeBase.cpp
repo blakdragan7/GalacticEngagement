@@ -19,8 +19,11 @@ AGEMelleGameModeBase::AGEMelleGameModeBase()
 
 void AGEMelleGameModeBase::PlayerControllerDestroyedController(AGEMelleePlayerControllerBase* destroyer, AGEMelleePlayerControllerBase* destroyed)
 {
-	if (OnPlayerWonWidget && destroyer)destroyer->ClientShowWidget(OnPlayerWonWidget, DelayAfterWinTillTravel);
-	if (OnPlayerLostWidget && destroyed)destroyed->ClientShowWidget(OnPlayerLostWidget, DelayAfterWinTillTravel);
+	if (OnPlayerWonWidget && destroyer)destroyer->Client_ShowWidget(OnPlayerWonWidget, DelayAfterWinTillTravel);
+	if (OnPlayerLostWidget && destroyed)destroyed->Client_ShowWidget(OnPlayerLostWidget, DelayAfterWinTillTravel);
+
+	controllersToEndSession.Add(destroyer);
+	controllersToEndSession.Add(destroyed);
 
 	GetWorld()->GetTimerManager().SetTimer(WinTimer,this,&AGEMelleGameModeBase::CloseSession, DelayAfterWinTillTravel,false);
 }
@@ -30,5 +33,10 @@ void AGEMelleGameModeBase::CloseSession()
 	if (UGEGameInstance* instance = Cast<UGEGameInstance>(GetGameInstance()))
 	{
 		instance->EndMatch();
+
+		for (auto controller : controllersToEndSession)
+		{
+			controller->Client_EndSession();
+		}
 	}
 }

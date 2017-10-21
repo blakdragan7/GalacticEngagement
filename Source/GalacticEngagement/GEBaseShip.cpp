@@ -30,8 +30,6 @@
 AGEBaseShip::AGEBaseShip()
 {
 	AIControllerClass = AGEBaseEnemyAIController::StaticClass();
-
-	SetReplicates(true);
 	//bReplicateMovement = true;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
@@ -66,13 +64,11 @@ AGEBaseShip::AGEBaseShip()
 	ThrusterMount->SetupAttachment(ShipBody);
 	ThrusterMount->AcceptedComponentType = EShipComponentType::SC_Thruster;
 	ThrusterMount->index = 1;
-	ThrusterMount->SetIsReplicated(true);
 
 	EngineMount = CreateDefaultSubobject<UComponentMountPoint>(TEXT("Engine"));
 	EngineMount->SetupAttachment(ShipBody);
 	EngineMount->AcceptedComponentType = EShipComponentType::SC_Engine;
 	EngineMount->index = 0;
-	EngineMount->SetIsReplicated(true);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipStart2.BaseShipStart2'"));
 	if (StaticMeshCube.Object)ShipBody->SetStaticMesh(StaticMeshCube.Object);
@@ -97,6 +93,10 @@ AGEBaseShip::AGEBaseShip()
 	SelectedGun = ESelectedGun::SG_Main;
 
 	bIsMultiplayer = true;
+
+	SetReplicates(true);
+	ThrusterMount->SetIsReplicated(true);
+	EngineMount->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -117,6 +117,15 @@ void AGEBaseShip::BeginPlay()
 
 	CurrentHealth = MaxHealth;
 	if (ShipHUDWidget) { ShipWidget->SetWidgetClass(ShipHUDWidget); }
+
+	SetReplicates(true);
+	ThrusterMount->SetIsReplicated(true);
+	EngineMount->SetIsReplicated(true);
+}
+
+void AGEBaseShip::OnRep_SetComponentSaveStruct()
+{
+	GEGameStatics::PopulateShipFromNetStruct(this,ComponentSaveStruct);
 }
 
 void AGEBaseShip::OnConstruction(const FTransform & Transform)
@@ -293,11 +302,6 @@ void AGEBaseShip::ReceiveDamage(AActor* attacker, int32 Damage, FVector DamageLo
 int32 AGEBaseShip::GetHealth()
 {
 	return CurrentHealth;
-}
-
-void AGEBaseShip::MultiCast_UpdateComponents_Implementation(FNetComponentSaveStruct saveStruct)
-{
-	GEGameStatics::PopulateShipFromNetStruct(this, saveStruct);
 }
 
 void AGEBaseShip::UpdateCameraPosition()
@@ -577,11 +581,11 @@ void AGEBaseShip::InvalidateTarget()
 	}
 }
 
-/*void AGEBaseShip::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+void AGEBaseShip::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	//DOREPLIFETIME(AGEBaseShip, CurrentHealth);
-}*/
+	DOREPLIFETIME(AGEBaseShip, ComponentSaveStruct);
+}
 
 bool AGEBaseShip::ShouldFireGun()
 {

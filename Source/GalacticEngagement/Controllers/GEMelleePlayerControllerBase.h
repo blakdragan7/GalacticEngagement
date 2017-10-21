@@ -23,8 +23,11 @@ public:
 	AGEMelleePlayerControllerBase();
 
 	UFUNCTION(Client,Reliable)
-	void ClientShowWidget(TSubclassOf<class UUserWidget> widgetToShow,float ForTime=-1);
+	void Client_ShowWidget(TSubclassOf<class UUserWidget> widgetToShow,float ForTime=-1);
 	
+	UFUNCTION(Client, Reliable)
+	void Client_EndSession();
+
 	UFUNCTION()
 	void RemoveShownWidget();
 };

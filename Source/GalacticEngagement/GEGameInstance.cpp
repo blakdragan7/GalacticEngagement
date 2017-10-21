@@ -71,13 +71,17 @@ void UGEGameInstance::StartMatch()
 
 void UGEGameInstance::EndMatch()
 {
-	IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
-
-	if (Sessions.IsValid())
+	IOnlineSubsystem* OnlineSub = IOnlineSubsystem::Get();
+	if (OnlineSub)
 	{
-		Sessions->EndSession(FName("MatchMakingSession"));
-		bool ret = Sessions->DestroySession(FName("MatchMakingSession"), OnDestroySessionCompleteDelegate);
-		UE_LOG(LogTemp,Warning,TEXT("did start Destroy Session %i"),(int)ret);
+		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+
+		if (Sessions.IsValid())
+		{
+			Sessions->EndSession(FName("MatchMakingSession"));
+			bool ret = Sessions->DestroySession(FName("MatchMakingSession"), OnDestroySessionCompleteDelegate);
+			UE_LOG(LogTemp, Warning, TEXT("did start Destroy Session %i"), (int)ret);
+		}
 	}
 }
 

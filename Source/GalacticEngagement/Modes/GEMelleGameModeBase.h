@@ -20,6 +20,8 @@ private:
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UUserWidget> OnPlayerWonWidget;
 
+	TArray<class AGEMelleePlayerControllerBase*> controllersToEndSession;
+
 	UPROPERTY(Category = UI, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float DelayAfterWinTillTravel;
 

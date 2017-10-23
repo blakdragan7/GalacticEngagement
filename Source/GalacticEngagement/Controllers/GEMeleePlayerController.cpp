@@ -79,17 +79,28 @@ void AGEMeleePlayerController::BeginDestroy()
 	BackgroundPlanes.Empty();
 }
 
-void AGEMeleePlayerController::ClientBeginStarField_Implementation()
+void AGEMeleePlayerController::SetPawn(APawn * pawn)
 {
-	BeganStarField = true;
-
-	if (AGEBaseShip* ship = Cast<AGEBaseShip>(GetPawn()))
+	Super::SetPawn(pawn);
+	if (IsLocalController())
 	{
-		for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
+		if (BeganStarField == false)
 		{
-			FBackgroundPlane* plane = BackgroundPlanes[i];
-			plane->SetRadiusToEdggeSqr(FMath::Square<int32>(ship->MaxCameraArmLength*1.2));
-			plane->SpawnAllActorsForBackground(GetWorld());
+			if (AGEBaseShip* ship = Cast<AGEBaseShip>(pawn))
+			{
+				BeganStarField = true;
+
+				for (int32 i = 0; i < BackgroundPlanes.Num(); i++)
+				{
+					FBackgroundPlane* plane = BackgroundPlanes[i];
+					plane->SetRadiusToEdggeSqr(FMath::Square<int32>(ship->MaxCameraArmLength*1.2));
+					plane->SpawnAllActorsForBackground(GetWorld());
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Trying To Start Star Field After Already Started"));
 		}
 	}
 }

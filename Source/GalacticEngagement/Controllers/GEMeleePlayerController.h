@@ -38,8 +38,7 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginDestroy()override;
 
-	UFUNCTION(BlueprintCallable, Category = Background, Client, Reliable)
-	void ClientBeginStarField();
+	virtual void SetPawn(APawn* pawn)override;
 
 	UFUNCTION()
 	void LoadCustomShipData();

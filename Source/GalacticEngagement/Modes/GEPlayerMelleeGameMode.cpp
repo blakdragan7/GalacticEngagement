@@ -53,10 +53,5 @@ void AGEPlayerMelleeGameMode::SpawnPlayer(AController* requestnigController, str
 		requestnigController->Possess(ship);
 		ship->ComponentSaveStruct = shipSave;
 		ship->OnRep_SetComponentSaveStruct();
-
-		if (AGEMeleePlayerController* MPC = Cast<AGEMeleePlayerController>(requestnigController))
-		{
-			MPC->ClientBeginStarField();
-		}
 	}
 }

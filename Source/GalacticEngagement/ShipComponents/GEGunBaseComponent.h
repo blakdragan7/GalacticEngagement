@@ -17,7 +17,6 @@ class GALACTICENGAGEMENT_API UGEGunBaseComponent : public UShipComponentBase
 private:
 	float ShotCountDown; // seconds until next shot
 	bool ToggleShoot;
-	
 	bool CanShoot();
 
 public:
@@ -29,8 +28,10 @@ public:
 	virtual bool FireGun(FVector Direction); // Fires gun using component rotaiton and location
 	virtual bool FireGun(FVector Direction, FVector& Location, FRotator &Rotation); // fires gun using given location and rotation
 
-	UPROPERTY(Category = Ammo, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = Ammo, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AGEAmmoBase> AmmoType;
-	UPROPERTY(Category = Control, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float ShotsPerSecond;;
+	UPROPERTY(Category = Control, EditAnywhere, BlueprintReadWrite)
+	float ShotsPerSecond;
+	UPROPERTY(Category = Stats, EditAnywhere, BlueprintReadWrite)
+	float Damage;
 };

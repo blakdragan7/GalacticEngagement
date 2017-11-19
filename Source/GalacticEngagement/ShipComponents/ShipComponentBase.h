@@ -35,4 +35,7 @@ public:
 	{
 		return true;
 	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Statistics")
+	FString Description;
 };

@@ -14,6 +14,7 @@ UGEGunBaseComponent::UGEGunBaseComponent()
 	ComponentType = EShipComponentType::SC_MainGun;
 	ShotCountDown = 0.0f;
 	ShotsPerSecond = 3.0f;
+	Damage = 10.0;
 	ToggleShoot = false;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshCube(TEXT("StaticMesh'/Game/Models/BaseShipSGun.BaseShipSGun'"));
@@ -46,6 +47,7 @@ bool UGEGunBaseComponent::FireGun()
 		const FRotator Rotation = MountedLocation->GetComponentRotation();
 		const FVector Direction = MountedLocation->GetForwardVector();
 		AGEAmmoBase* ammo = static_cast<AGEAmmoBase*>(MountedLocation->GetWorld()->SpawnActor(AmmoType, &Location, &Rotation, spawnParams));
+		ammo->MaxDamage = Damage;
 		ammo->Launch(MountedLocation->GetOwner(), Direction);
 		ToggleShoot = true;
 		return true;
